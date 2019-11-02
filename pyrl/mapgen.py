@@ -1,37 +1,13 @@
 #!/usr/bin/env python
-from dataclasses import dataclass, field
 from random import randint
-from typing import List
+
+import tcod.color
 
 from . import config
-from .components import Position
-from .resources.map import Map
-
-
-@dataclass
-class Rect:
-    x1: int
-    y1: int
-    w: int
-    h: int
-    x2: int = field(init=False)
-    y2: int = field(init=False)
-
-    def __post_init__(self):
-        self.x2 = self.x1 + self.w
-        self.y2 = self.y1 + self.h
-
-    @property
-    def center(self) -> Position:
-        return Position(int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2))
-
-    def intersect(self, other: "Rect") -> bool:
-        return (
-            self.x1 <= other.x2
-            and self.x2 >= other.x1
-            and self.y1 <= other.y2
-            and self.y2 >= other.y1
-        )
+from .components import Collider, Energy, Name, Position, Visual
+from .components.ai import basic as basic_ai
+from .esper_ext import WorldExt
+from .resources.map import Map, Rect
 
 
 def create_room(map: Map, room: Rect) -> None:
@@ -65,8 +41,6 @@ def dummy_map() -> Map:
 def random_map() -> Map:
     map = Map(width=config.SCREEN_WIDTH, height=config.SCREEN_HEIGHT)
 
-    rooms: List[Rect] = []
-
     for _ in range(config.MAX_ROOMS):
         # random width and height
         w = randint(config.ROOM_MIN_SIZE, config.ROOM_MAX_SIZE)
@@ -78,24 +52,55 @@ def random_map() -> Map:
         # "Rect" class makes rectangles easier to work with
         new_room = Rect(x, y, w, h)
 
-        if not any(new_room.intersect(other_room) for other_room in rooms):
+        if not any(new_room.intersect(other_room) for other_room in map.rooms):
             create_room(map, new_room)
             new_center = new_room.center
-            if not rooms:
+            if not map.rooms:
                 map.spawn_position = new_center
             else:
-                # center coordinates of previous room
-                prev_center = rooms[-1].center
-
-                # flip a coin (random number that is either 0 or 1)
-                if randint(0, 1) == 1:
-                    # first move horizontally, then vertically
-                    create_h_tunnel(map, prev_center.x, new_center.x, prev_center.y)
-                    create_v_tunnel(map, prev_center.y, new_center.y, new_center.x)
-                else:
-                    # first move vertically, then horizontally
-                    create_v_tunnel(map, prev_center.y, new_center.y, prev_center.x)
-                    create_h_tunnel(map, prev_center.x, new_center.x, new_center.y)
-            rooms.append(new_room)
+                connect_room(map, new_center)
+            map.rooms.append(new_room)
 
     return map
+
+
+def connect_room(map: Map, new_center: Position) -> None:
+    # center coordinates of previous room
+    prev_center = map.rooms[-1].center
+    # flip a coin (random number that is either 0 or 1)
+    if randint(0, 1) == 1:
+        # first move horizontally, then vertically
+        create_h_tunnel(map, prev_center.x, new_center.x, prev_center.y)
+        create_v_tunnel(map, prev_center.y, new_center.y, new_center.x)
+    else:
+        # first move vertically, then horizontally
+        create_v_tunnel(map, prev_center.y, new_center.y, prev_center.x)
+        create_h_tunnel(map, prev_center.x, new_center.x, new_center.y)
+
+
+def generate_monsters(world: WorldExt) -> None:
+    map = world.get_resource(Map)
+
+    for room in map.rooms:
+        number_of_monsters = randint(0, config.MAX_MONSTERS_PER_ROOM)
+
+        for i in range(number_of_monsters):
+            # Choose a random location in the room
+            position = Position(
+                x=randint(room.x1 + 1, room.x2 - 1), y=randint(room.y1 + 1, room.y2 - 1)
+            )
+
+            if not any(match[1] == position for match in world.get_component(Position)):
+                monster = world.create_entity(position, Collider(), Energy(0), basic_ai)
+                if randint(0, 100) < 80:
+                    world.add_components(
+                        monster,
+                        Visual(char="o", color=tcod.desaturated_green),
+                        Name("Orc"),
+                    )
+                else:
+                    world.add_components(
+                        monster,
+                        Visual(char="T", color=tcod.darker_green),
+                        Name("Troll"),
+                    )

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 import esper  # type: ignore
 
@@ -12,9 +12,14 @@ class WorldExt(esper.World):
         super(WorldExt, self).__init__(timed)
         self.resources: Dict = {}
 
+    def _process(self, *args, **kwargs):
+        for processor in self._processors:
+            print(type(processor))
+            processor.process(*args, **kwargs)
+
     def add_processors(self, *processors: "Processor"):
-        for idx, processor in enumerate(reversed(processors)):
-            self.add_processor(processor, idx)
+        for processor in processors:
+            self.add_processor(processor)
 
     def add_resource(self, resource: T) -> None:
         resource_type = getattr(resource, "resource_type", type(resource))
@@ -49,9 +54,50 @@ class WorldExt(esper.World):
         self._entities[entity][component_type] = component_instance
         self.clear_cache()
 
+    def add_components(self, entity: int, *component_instances: Any) -> None:
+        for component in component_instances:
+            self.add_component(entity, component)
+
+    def try_component(self, entity: int, component_type: T) -> Optional[T]:
+        """Try to get a single component type for an Entity.
+
+        Copy-paste from Esper, except it returns instead of yielding, because
+        yielding doesn't actually make any sense here
+        """
+        if component_type in self._entities[entity]:
+            return self._entities[entity][component_type]
+        else:
+            return None
+
 
 class Processor(esper.Processor):
     world: WorldExt
 
     def process(self, *args, **kwargs):
         raise NotImplementedError
+
+
+class RunWhile(Processor):
+    _world: WorldExt
+
+    def __init__(
+        self, condition: Callable[[WorldExt], bool], children: List[Processor]
+    ):
+        self.condition = condition
+        self.children = children
+
+    def process(self, *args, **kwargs):
+        while self.condition(self.world):
+            for child in self.children:
+                print(f"  {type(child)}")
+                child.process(*args, **kwargs)
+
+    @property
+    def world(self) -> WorldExt:
+        return self._world
+
+    @world.setter
+    def world(self, value: WorldExt) -> None:
+        self._world = value
+        for child in self.children:
+            child.world = value

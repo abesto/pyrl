@@ -17,6 +17,7 @@ Action.component_type = Action
 
 @dataclass
 class SimpleAction(Action):
+    name: str
     energy_cost: int
 
 
@@ -42,4 +43,4 @@ class MoveOrMelee(Action):
         return self.velocity.magnitude
 
 
-wait_for_input = SimpleAction(0)
+ponder = SimpleAction("ponder", 1)

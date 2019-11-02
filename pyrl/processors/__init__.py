@@ -6,4 +6,6 @@ from .fov import FovProcessor  # NOQA
 from .input import InputProcessor  # NOQA
 from .move_and_melee import MoveAndMeleeProcessor  # NOQA
 from .movement import MovementProcessor  # NOQA
+from .ponder import PonderProcessor  # NOQA
 from .render import RenderProcessor  # NOQA
+from .time import TimeProcessor  # NOQA

@@ -2,7 +2,8 @@
 
 from typing import ClassVar, Dict
 
-from ..components.action import MoveOrMelee
+from ..components import Name
+from ..components.action import MoveOrMelee, ponder
 from ..components.ai import Ai
 from ..components.ai import Kind as AiKind
 from ..components.velocity import Heading, Velocity
@@ -22,10 +23,12 @@ class AiProcessor(Processor):
         for ent, ai in self.world.get_component(Ai):
             if ai.kind is AiKind.Player:
                 self._process_player_ai(ent)
+            elif ai.kind is AiKind.Basic:
+                self._process_basic_ai(ent)
             else:
                 raise NotImplementedError
 
-    def _process_player_ai(self, ent: int):
+    def _process_player_ai(self, ent: int) -> None:
         action = self.world.get_resource(input_action.InputAction)
         if action in (
             input_action.move_north,
@@ -44,3 +47,6 @@ class AiProcessor(Processor):
                 ),
             )
             self.world.add_resource(input_action.noop)
+
+    def _process_basic_ai(self, ent: int) -> None:
+        self.world.add_component(ent, ponder)

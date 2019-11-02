@@ -5,13 +5,22 @@ import tcod.console
 import tcod.event
 
 from . import config
-from .components import Player, Position, Visual
+from .components import Collider, Energy, Name, Player, Visual
+from .components.action import Action
 from .components.ai import player as player_ai
-from .esper_ext import WorldExt
-from .mapgen import random_map
-from .processors import (AiProcessor, CollisionProcessor, FovProcessor,
-                         InputProcessor, MoveAndMeleeProcessor,
-                         MovementProcessor, RenderProcessor)
+from .esper_ext import RunWhile, WorldExt
+from .mapgen import generate_monsters, random_map
+from .processors import (
+    AiProcessor,
+    CollisionProcessor,
+    FovProcessor,
+    InputProcessor,
+    MoveAndMeleeProcessor,
+    MovementProcessor,
+    PonderProcessor,
+    RenderProcessor,
+    TimeProcessor,
+)
 from .resources import Fov, Map, input_action
 
 
@@ -19,25 +28,38 @@ def add_processors(world: WorldExt) -> None:
     world.add_processors(
         InputProcessor(),
         AiProcessor(),
-        MoveAndMeleeProcessor(),
-        CollisionProcessor(),
-        MovementProcessor(),
+        RunWhile(
+            there_are_actions_to_take,
+            [
+                MoveAndMeleeProcessor(),
+                CollisionProcessor(),
+                MovementProcessor(),
+                PonderProcessor(),
+            ],
+        ),
+        TimeProcessor(),
         FovProcessor(),
         RenderProcessor(),
     )
 
 
+def there_are_actions_to_take(world: WorldExt) -> bool:
+    for ent, (energy, _) in world.get_components(Energy, Action):
+        if energy.can_act:
+            return True
+    return False
+
+
 def add_player(world: WorldExt) -> None:
     map = world.get_resource(Map)
     world.create_entity(
-        map.spawn_position, Visual("@", tcod.white), player_ai, Player()
-    )
-
-
-def add_npc(world: WorldExt) -> None:
-    world.create_entity(
-        Position(int(config.SCREEN_WIDTH / 2 - 5), int(config.SCREEN_WIDTH / 2 - 5)),
-        Visual("@", tcod.yellow),
+        map.spawn_position,
+        Visual("@", tcod.white),
+        player_ai,
+        Player(),
+        Name("Player"),
+        Collider(),
+        Energy(1),
     )
 
 
@@ -50,7 +72,8 @@ def build_world() -> WorldExt:
     world.add_resource(Fov(map))
 
     add_player(world)
-    add_npc(world)
+    generate_monsters(world)
+
     return world
 
 

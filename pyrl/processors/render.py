@@ -19,7 +19,10 @@ class RenderProcessor(Processor):
         tcod.console_flush()
 
     def _process_entities(self, buffer: tcod.console.Console) -> None:
+        fov_map = self.world.get_resource(Fov).fov_map
         for ent, (position, visual) in self.world.get_components(Position, Visual):
+            if not fov_map.fov[position.y, position.x]:
+                continue
             buffer.print(position.x, position.y, visual.char, fg=visual.color)
 
     def _process_map(self, buffer: tcod.console.Console) -> None:

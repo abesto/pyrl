@@ -6,8 +6,15 @@ import tcod.event
 from tcod.event import EventDispatch, KeyDown, Quit
 
 from ..esper_ext import Processor, WorldExt
-from ..resources.input_action import (InputAction, move_east, move_north,
-                                      move_south, move_west, noop, quit)
+from ..resources.input_action import (
+    InputAction,
+    move_east,
+    move_north,
+    move_south,
+    move_west,
+    noop,
+    quit,
+)
 
 
 class EventDispatchStrategy(EventDispatch):
