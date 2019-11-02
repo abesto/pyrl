@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from typing import Any, Dict, Type, TypeVar
+from typing import Any, Dict, Optional, Type, TypeVar
 
 import esper  # type: ignore
 
@@ -22,6 +22,9 @@ class WorldExt(esper.World):
 
     def get_resource(self, resource_type: Type[T]) -> T:
         return self.resources[resource_type]
+
+    def try_resource(self, resource_type: Type[T]) -> Optional[T]:
+        return self.resources.get(resource_type, None)
 
     def add_component(self, entity: int, component_instance: Any) -> None:
         """Add a new Component instance to an Entity.

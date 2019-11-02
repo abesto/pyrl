@@ -5,14 +5,14 @@ import tcod.console
 import tcod.event
 
 from . import config
-from .components import Position, Visual
+from .components import Player, Position, Visual
 from .components.ai import player as player_ai
 from .esper_ext import WorldExt
 from .mapgen import random_map
-from .processors import (AiProcessor, CollisionProcessor, InputProcessor,
-                         MoveAndMeleeProcessor, MovementProcessor,
-                         RenderProcessor)
-from .resources import Map, input_action
+from .processors import (AiProcessor, CollisionProcessor, FovProcessor,
+                         InputProcessor, MoveAndMeleeProcessor,
+                         MovementProcessor, RenderProcessor)
+from .resources import Fov, Map, input_action
 
 
 def add_processors(world: WorldExt) -> None:
@@ -22,6 +22,7 @@ def add_processors(world: WorldExt) -> None:
         MoveAndMeleeProcessor(),
         CollisionProcessor(),
         MovementProcessor(),
+        FovProcessor(),
         RenderProcessor(),
     )
 
@@ -29,7 +30,7 @@ def add_processors(world: WorldExt) -> None:
 def add_player(world: WorldExt) -> None:
     map = world.get_resource(Map)
     world.create_entity(
-        map.spawn_position, Visual("@", tcod.white), player_ai,
+        map.spawn_position, Visual("@", tcod.white), player_ai, Player()
     )
 
 
@@ -43,7 +44,11 @@ def add_npc(world: WorldExt) -> None:
 def build_world() -> WorldExt:
     world = WorldExt()
     add_processors(world)
-    world.add_resource(random_map())
+
+    map = random_map()
+    world.add_resource(map)
+    world.add_resource(Fov(map))
+
     add_player(world)
     add_npc(world)
     return world

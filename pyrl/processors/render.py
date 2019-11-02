@@ -5,6 +5,7 @@ import tcod.console
 from .. import config
 from ..components import Position, Visual
 from ..esper_ext import Processor
+from ..resources import Fov
 from ..resources.map import Map
 
 
@@ -23,10 +24,19 @@ class RenderProcessor(Processor):
 
     def _process_map(self, buffer: tcod.console.Console) -> None:
         map = self.world.get_resource(Map)
+        fov_map = self.world.get_resource(Fov).fov_map
         for x, column in enumerate(map.tiles):
             for y, tile in enumerate(column):
-                is_wall = tile.block_sight
-                if is_wall:
-                    buffer.print(x, y, "#", bg=config.theme.dark_wall)
+                if not tile.explored:
+                    continue
+                wall = tile.block_sight
+                visible = fov_map.fov[y, x]
+
+                if wall:
+                    char = "#"
                 else:
-                    buffer.print(x, y, ".", bg=config.theme.dark_ground)
+                    char = "."
+
+                buffer.print(
+                    x, y, char, bg=config.theme.background_color(wall, visible)
+                )
