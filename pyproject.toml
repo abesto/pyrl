@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pyrl"
+version = "0.1.0"
+description = ""
+authors = ["Zoltán Nagy <abesto@abesto.net>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+tcod = "^11.4.1"
+esper = "^1.2"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.740"
+isort = "^4.3.21"
+flake8 = "^3.7.9"
+black = "^19.10b0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
