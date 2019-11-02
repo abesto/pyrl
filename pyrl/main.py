@@ -8,6 +8,7 @@ from . import config
 from .components import Position, Visual
 from .components.ai import player as player_ai
 from .esper_ext import WorldExt
+from .mapgen import dummy_map
 from .processors import (AiProcessor, InputProcessor, MovementProcessor,
                          RenderProcessor)
 from .resources import input_action
@@ -22,8 +23,15 @@ def add_processors(world: WorldExt) -> None:
 def add_player(world: WorldExt) -> None:
     world.create_entity(
         Position(int(config.SCREEN_WIDTH / 2), int(config.SCREEN_HEIGHT / 2)),
-        Visual("@"),
+        Visual("@", tcod.white),
         player_ai,
+    )
+
+
+def add_npc(world: WorldExt) -> None:
+    world.create_entity(
+        Position(int(config.SCREEN_WIDTH / 2 - 5), int(config.SCREEN_WIDTH / 2 - 5)),
+        Visual("@", tcod.yellow),
     )
 
 
@@ -31,6 +39,8 @@ def build_world() -> WorldExt:
     world = WorldExt()
     add_processors(world)
     add_player(world)
+    add_npc(world)
+    world.add_resource(dummy_map())
     return world
 
 
