@@ -2,10 +2,10 @@
 
 from typing import ClassVar, Dict
 
-from ..components import Velocity
+from ..components.action import MoveOrMelee
 from ..components.ai import Ai
 from ..components.ai import Kind as AiKind
-from ..components.velocity import Heading
+from ..components.velocity import Heading, Velocity
 from ..esper_ext import Processor
 from ..resources import input_action
 
@@ -24,7 +24,6 @@ class AiProcessor(Processor):
                 self._process_player_ai(ent)
             else:
                 raise NotImplementedError
-        self.world.add_resource(input_action.noop)
 
     def _process_player_ai(self, ent: int):
         action = self.world.get_resource(input_action.InputAction)
@@ -35,5 +34,13 @@ class AiProcessor(Processor):
             input_action.move_west,
         ):
             self.world.add_component(
-                ent, Velocity(heading=self.input_action_to_heading[action], magnitude=1)
+                ent,
+                MoveOrMelee(
+                    velocity=Velocity(
+                        heading=self.input_action_to_heading[action], magnitude=1
+                    ),
+                    attack_monster=True,
+                    attack_player=False,
+                ),
             )
+            self.world.add_resource(input_action.noop)

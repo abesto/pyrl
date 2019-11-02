@@ -8,23 +8,28 @@ from . import config
 from .components import Position, Visual
 from .components.ai import player as player_ai
 from .esper_ext import WorldExt
-from .mapgen import dummy_map
-from .processors import (AiProcessor, InputProcessor, MovementProcessor,
+from .mapgen import random_map
+from .processors import (AiProcessor, CollisionProcessor, InputProcessor,
+                         MoveAndMeleeProcessor, MovementProcessor,
                          RenderProcessor)
-from .resources import input_action
+from .resources import Map, input_action
 
 
 def add_processors(world: WorldExt) -> None:
     world.add_processors(
-        InputProcessor(), AiProcessor(), MovementProcessor(), RenderProcessor()
+        InputProcessor(),
+        AiProcessor(),
+        MoveAndMeleeProcessor(),
+        CollisionProcessor(),
+        MovementProcessor(),
+        RenderProcessor(),
     )
 
 
 def add_player(world: WorldExt) -> None:
+    map = world.get_resource(Map)
     world.create_entity(
-        Position(int(config.SCREEN_WIDTH / 2), int(config.SCREEN_HEIGHT / 2)),
-        Visual("@", tcod.white),
-        player_ai,
+        map.spawn_position, Visual("@", tcod.white), player_ai,
     )
 
 
@@ -38,9 +43,9 @@ def add_npc(world: WorldExt) -> None:
 def build_world() -> WorldExt:
     world = WorldExt()
     add_processors(world)
+    world.add_resource(random_map())
     add_player(world)
     add_npc(world)
-    world.add_resource(dummy_map())
     return world
 
 
@@ -67,7 +72,7 @@ def main():
     world.add_resource(init_tcod())
     world.add_resource(input_action.noop)
 
-    while not world.get_resource(input_action.InputAction) is input_action.quit:
+    while world.get_resource(input_action.InputAction) is not input_action.quit:
         world.process()
 
 

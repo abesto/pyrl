@@ -7,7 +7,7 @@ from tcod.event import EventDispatch, KeyDown, Quit
 
 from ..esper_ext import Processor, WorldExt
 from ..resources.input_action import (InputAction, move_east, move_north,
-                                      move_south, move_west, quit)
+                                      move_south, move_west, noop, quit)
 
 
 class EventDispatchStrategy(EventDispatch):
@@ -31,7 +31,7 @@ class SimpleDispatch(EventDispatchStrategy):
         self._set_input_action(quit)
 
     def ev_keydown(self, event: KeyDown) -> None:
-        self._set_input_action(self.key_to_action[event.sym])
+        self._set_input_action(self.key_to_action.get(event.sym, noop))
 
 
 class InputProcessor(Processor):
@@ -44,6 +44,4 @@ class InputProcessor(Processor):
         return self.dispatch
 
     def process(self):
-        dispatch = self.get_dispatch()
-        for event in tcod.event.get():
-            dispatch.dispatch(event)
+        self.get_dispatch().dispatch(next(tcod.event.wait()))

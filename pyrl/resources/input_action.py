@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from enum import Enum, auto
 from typing import ClassVar, Type
 
 

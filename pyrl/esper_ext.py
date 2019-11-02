@@ -13,7 +13,7 @@ class WorldExt(esper.World):
         self.resources: Dict = {}
 
     def add_processors(self, *processors: "Processor"):
-        for idx, processor in enumerate(processors):
+        for idx, processor in enumerate(reversed(processors)):
             self.add_processor(processor, idx)
 
     def add_resource(self, resource: T) -> None:

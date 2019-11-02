@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import List
 
+from ..components import Position
+
 
 @dataclass
 class Tile:
@@ -30,9 +32,10 @@ Tiles = List[List[Tile]]
 class Map:
     width: int
     height: int
+    spawn_position: Position = field(init=False)
     tiles: Tiles = field(init=False)
 
     def __post_init__(self):
         self.tiles = [
-            [Tile.floor() for _ in range(self.height)] for _ in range(self.width)
+            [Tile.wall() for _ in range(self.height)] for _ in range(self.width)
         ]

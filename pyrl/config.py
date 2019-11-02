@@ -10,6 +10,10 @@ SCREEN_HEIGHT = 50
 
 FONT_PATH = os.path.join("assets", "arial10x10.png")
 
+ROOM_MAX_SIZE = 10
+ROOM_MIN_SIZE = 6
+MAX_ROOMS = 30
+
 
 @dataclass
 class Theme:
