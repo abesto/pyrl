@@ -3,6 +3,7 @@
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 import esper  # type: ignore
+import tabulate
 
 T = TypeVar("T")
 
@@ -14,7 +15,7 @@ class WorldExt(esper.World):
 
     def _process(self, *args, **kwargs):
         for processor in self._processors:
-            print(type(processor))
+            # print(type(processor))
             processor.process(*args, **kwargs)
 
     def add_processors(self, *processors: "Processor"):
@@ -88,8 +89,11 @@ class RunWhile(Processor):
 
     def process(self, *args, **kwargs):
         while self.condition(self.world):
+            from .components.action import Action
+
+            # debug_world(self.world, Action)
             for child in self.children:
-                print(f"  {type(child)}")
+                # print(f"  {type(child)}")
                 child.process(*args, **kwargs)
 
     @property
@@ -101,3 +105,11 @@ class RunWhile(Processor):
         self._world = value
         for child in self.children:
             child.world = value
+
+
+def debug_world(world: esper.World, *with_components: Type[Any]) -> None:
+    data = []
+    for ent, _ in world.get_components(*with_components):
+        components = world.components_for_entity(ent)
+        data.append(dict({"ent": ent}, **{str(type(c)): c for c in components}))
+    print(tabulate.tabulate(data))

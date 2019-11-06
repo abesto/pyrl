@@ -1,23 +1,32 @@
 #!/usr/bin/env python
 
-from dataclasses import dataclass
-from typing import ClassVar, Type
+from dataclasses import dataclass, field
+from typing import ClassVar, Dict, Type
+
+from ..vector import Vector
 
 
-@dataclass(frozen=True)
 class InputAction:
     resource_type: ClassVar[Type["InputAction"]]
-    name: str
 
 
 InputAction.resource_type = InputAction
 
 
-noop = InputAction("noop")
+@dataclass
+class SimpleInputAction(InputAction):
+    name: str
 
-move_north = InputAction("move_north")
-move_east = InputAction("move_east")
-move_south = InputAction("move_south")
-move_west = InputAction("move_west")
 
-quit = InputAction("quit")
+noop = SimpleInputAction("noop")
+quit = SimpleInputAction("quit")
+
+
+@dataclass(frozen=True)
+class Move(InputAction):
+    vector: Vector
+
+    one: ClassVar[Dict[str, "Move"]]
+
+
+Move.one = {heading: Move(vector) for heading, vector in Vector.unit.items()}

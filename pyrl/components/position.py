@@ -2,26 +2,21 @@
 
 from dataclasses import dataclass
 
-from .velocity import Heading, Velocity
+from ..vector import Vector
+from .velocity import Velocity
 
 
 @dataclass
 class Position:
-    x: int
-    y: int
+    vector: Vector
 
-    def __iadd__(self, other: Velocity) -> "Position":
-        if other.heading is Heading.West:
-            self.x -= other.magnitude
-        if other.heading is Heading.North:
-            self.y -= other.magnitude
-        if other.heading is Heading.East:
-            self.x += other.magnitude
-        if other.heading is Heading.South:
-            self.y += other.magnitude
-        return self
+    @property
+    def x(self) -> int:
+        return self.vector.x
+
+    @property
+    def y(self) -> int:
+        return self.vector.y
 
     def __add__(self, other: Velocity) -> "Position":
-        p = Position(self.x, self.y)
-        p += other
-        return p
+        return Position(self.vector + other.vector)

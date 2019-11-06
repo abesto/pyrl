@@ -6,49 +6,40 @@ import tcod.event
 from tcod.event import EventDispatch, KeyDown, Quit
 
 from ..esper_ext import Processor, WorldExt
-from ..resources.input_action import (
-    InputAction,
-    move_east,
-    move_north,
-    move_south,
-    move_west,
-    noop,
-    quit,
-)
+from ..resources.input_action import InputAction, Move, noop, quit
+from ..vector import Vector
+
+Keymap = Dict[int, InputAction]
 
 
-class EventDispatchStrategy(EventDispatch):
-    def __init__(self, world: WorldExt):
-        self.world = world
+simple_keymap: Keymap = {
+    # Quit
+    tcod.event.K_ESCAPE: quit,
+    # Arrow keys
+    tcod.event.K_UP: Move.one["n"],
+    tcod.event.K_RIGHT: Move.one["e"],
+    tcod.event.K_DOWN: Move.one["s"],
+    tcod.event.K_LEFT: Move.one["w"],
+    # VIM-like
+    tcod.event.K_k: Move.one["n"],
+    tcod.event.K_j: Move.one["s"],
+    tcod.event.K_h: Move.one["w"],
+    tcod.event.K_l: Move.one["e"],
+    tcod.event.K_y: Move.one["nw"],
+    tcod.event.K_u: Move.one["ne"],
+    tcod.event.K_b: Move.one["sw"],
+    tcod.event.K_n: Move.one["se"],
+}
 
 
-class SimpleDispatch(EventDispatchStrategy):
-    key_to_action: ClassVar[Dict[int, InputAction]] = {
-        tcod.event.K_UP: move_north,
-        tcod.event.K_RIGHT: move_east,
-        tcod.event.K_DOWN: move_south,
-        tcod.event.K_LEFT: move_west,
-        tcod.event.K_ESCAPE: quit,
-    }
-
-    def _set_input_action(self, action: InputAction) -> None:
-        self.world.add_resource(action)
-
-    def ev_quit(self, event: Quit) -> None:
-        self._set_input_action(quit)
-
-    def ev_keydown(self, event: KeyDown) -> None:
-        self._set_input_action(self.key_to_action.get(event.sym, noop))
+def event_to_action(event: tcod.event.Event) -> InputAction:
+    if isinstance(event, tcod.event.Quit):
+        return quit
+    if isinstance(event, tcod.event.KeyDown):
+        return simple_keymap.get(event.sym, noop)
+    return noop
 
 
 class InputProcessor(Processor):
-    def __init__(self):
-        self.dispatch: Optional[EventDispatchStrategy] = None
-
-    def get_dispatch(self) -> EventDispatchStrategy:
-        if not self.dispatch or self.dispatch.world is not self.world:
-            self.dispatch = SimpleDispatch(self.world)
-        return self.dispatch
-
     def process(self):
-        self.get_dispatch().dispatch(next(tcod.event.wait()))
+        self.world.add_resource(event_to_action(next(tcod.event.wait())))

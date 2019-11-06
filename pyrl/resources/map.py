@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import List
 
 from ..components import Position
+from ..vector import Vector
 
 
 @dataclass
@@ -42,8 +43,8 @@ class Rect:
         self.y2 = self.y1 + self.h
 
     @property
-    def center(self) -> Position:
-        return Position(int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2))
+    def center(self) -> Vector:
+        return Vector(int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2))
 
     def intersect(self, other: "Rect") -> bool:
         return (

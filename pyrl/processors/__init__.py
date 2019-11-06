@@ -8,4 +8,5 @@ from .move_and_melee import MoveAndMeleeProcessor  # NOQA
 from .movement import MovementProcessor  # NOQA
 from .ponder import PonderProcessor  # NOQA
 from .render import RenderProcessor  # NOQA
+from .skip import SkipProcessor  # NOQA
 from .time import TimeProcessor  # NOQA

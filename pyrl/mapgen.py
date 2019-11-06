@@ -4,10 +4,11 @@ from random import randint
 import tcod.color
 
 from . import config
-from .components import Collider, Energy, Name, Position, Visual
+from .components import Collider, Energy, Fighter, Name, Position, Visual
 from .components.ai import basic as basic_ai
 from .esper_ext import WorldExt
 from .resources.map import Map, Rect
+from .vector import Vector
 
 
 def create_room(map: Map, room: Rect) -> None:
@@ -56,7 +57,7 @@ def random_map() -> Map:
             create_room(map, new_room)
             new_center = new_room.center
             if not map.rooms:
-                map.spawn_position = new_center
+                map.spawn_position = Position(new_center)
             else:
                 connect_room(map, new_center)
             map.rooms.append(new_room)
@@ -64,7 +65,7 @@ def random_map() -> Map:
     return map
 
 
-def connect_room(map: Map, new_center: Position) -> None:
+def connect_room(map: Map, new_center: Vector) -> None:
     # center coordinates of previous room
     prev_center = map.rooms[-1].center
     # flip a coin (random number that is either 0 or 1)
@@ -87,20 +88,25 @@ def generate_monsters(world: WorldExt) -> None:
         for i in range(number_of_monsters):
             # Choose a random location in the room
             position = Position(
-                x=randint(room.x1 + 1, room.x2 - 1), y=randint(room.y1 + 1, room.y2 - 1)
+                Vector(
+                    x=randint(room.x1 + 1, room.x2 - 1),
+                    y=randint(room.y1 + 1, room.y2 - 1),
+                )
             )
 
             if not any(match[1] == position for match in world.get_component(Position)):
-                monster = world.create_entity(position, Collider(), Energy(0), basic_ai)
+                monster = world.create_entity(position, Collider(), Energy(1), basic_ai)
                 if randint(0, 100) < 80:
                     world.add_components(
                         monster,
                         Visual(char="o", color=tcod.desaturated_green),
                         Name("Orc"),
+                        Fighter(hp=10, defense=0, power=3),
                     )
                 else:
                     world.add_components(
                         monster,
                         Visual(char="T", color=tcod.darker_green),
                         Name("Troll"),
+                        Fighter(hp=16, defense=1, power=4),
                     )

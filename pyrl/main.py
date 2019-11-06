@@ -5,10 +5,10 @@ import tcod.console
 import tcod.event
 
 from . import config
-from .components import Collider, Energy, Name, Player, Visual
+from .components import Collider, Energy, Fighter, Name, Player, Visual
 from .components.action import Action
 from .components.ai import player as player_ai
-from .esper_ext import RunWhile, WorldExt
+from .esper_ext import RunWhile, WorldExt, debug_world
 from .mapgen import generate_monsters, random_map
 from .processors import (
     AiProcessor,
@@ -19,9 +19,11 @@ from .processors import (
     MovementProcessor,
     PonderProcessor,
     RenderProcessor,
+    SkipProcessor,
     TimeProcessor,
 )
 from .resources import Fov, Map, input_action
+from .resources.input_action import InputAction, noop
 
 
 def add_processors(world: WorldExt) -> None:
@@ -31,6 +33,7 @@ def add_processors(world: WorldExt) -> None:
         RunWhile(
             there_are_actions_to_take,
             [
+                SkipProcessor(),
                 MoveAndMeleeProcessor(),
                 CollisionProcessor(),
                 MovementProcessor(),
@@ -44,6 +47,11 @@ def add_processors(world: WorldExt) -> None:
 
 
 def there_are_actions_to_take(world: WorldExt) -> bool:
+    have_input = world.try_resource(InputAction) is not noop
+    have_player_action = world.get_components(Action, Player)
+
+    if not have_input and not have_player_action:
+        return False
     for ent, (energy, _) in world.get_components(Energy, Action):
         if energy.can_act:
             return True
@@ -60,6 +68,7 @@ def add_player(world: WorldExt) -> None:
         Name("Player"),
         Collider(),
         Energy(1),
+        Fighter(hp=30, defense=2, power=5,),
     )
 
 

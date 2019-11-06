@@ -4,7 +4,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import ClassVar, Type
 
-from .velocity import Velocity
+from ..vector import Vector
 
 
 class Action(ABC):
@@ -33,14 +33,15 @@ class Skip(Action):
 
 @dataclass
 class MoveOrMelee(Action):
-    velocity: Velocity
+    vector: Vector
     attack_player: bool
     attack_monster: bool
 
     # https://github.com/python/mypy/issues/4125
     @property
     def energy_cost(self) -> int:  # type: ignore
-        return self.velocity.magnitude
+        return int(self.vector.length)
 
 
 ponder = SimpleAction("ponder", 1)
+skip_one = Skip(1)

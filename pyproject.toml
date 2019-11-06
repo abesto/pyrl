@@ -9,6 +9,7 @@ license = "MIT"
 python = "^3.7"
 tcod = "^11.4.1"
 esper = "^1.2"
+tabulate = "^0.8.5"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.740"
