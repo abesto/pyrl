@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 from pyrl.components import Energy, Name
 from pyrl.components.action import Action, ponder
-
-from ..esper_ext import Processor
+from pyrl.esper_ext import Processor
+from pyrl.resources import Messages
 
 
 class PonderProcessor(Processor):
     def process(self):
-        for _, (name, action, energy) in self.world.get_components(
+        for ent, (name, action, energy) in self.world.get_components(
             Name, Action, Energy
         ):
             if action is not ponder:
                 continue
-            elif energy.consume(action.energy_cost):
-                print(f"{name} ponders the meaning of existence")
+            messages = self.world.get_resource(Messages)
+            if energy.can_act:
+                messages.append(f"{name} ponders the meaning of existence")
+                self.world.add_component(ent, energy.consume(action.energy_cost))

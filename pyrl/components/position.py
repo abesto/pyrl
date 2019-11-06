@@ -6,7 +6,7 @@ from ..vector import Vector
 from .velocity import Velocity
 
 
-@dataclass
+@dataclass(frozen=True)
 class Position:
     vector: Vector
 

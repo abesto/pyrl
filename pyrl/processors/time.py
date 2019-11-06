@@ -14,8 +14,8 @@ class TimeProcessor(Processor):
             if energy.can_act:
                 return
         # Time passes
-        for _, energy in self.world.get_component(Energy):
-            energy.gain(1)
+        for ent, energy in self.world.get_component(Energy):
+            self.world.add_component(ent, energy.gain(1))
         # Debugging
         print(f"Turn {self.turn} is over")
         self.turn += 1

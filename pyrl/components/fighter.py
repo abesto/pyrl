@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 
 from dataclasses import dataclass, field
+from typing import Optional
 
 
-@dataclass
+@dataclass(frozen=True)
 class Fighter:
-    max_hp: int = field(init=False)
+    max_hp: int
     hp: int
     defense: int
     power: int
 
-    def __post_init__(self) -> None:
-        self.max_hp = self.hp
+    @classmethod
+    def new(
+        cls, hp: int, defense: int, power: int, max_hp: Optional[int] = None
+    ) -> "Fighter":
+        return Fighter(max_hp or hp, hp, defense, power)

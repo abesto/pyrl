@@ -4,26 +4,29 @@ import tcod
 import tcod.console
 import tcod.event
 
-from . import config
-from .components import Collider, Energy, Fighter, Name, Player, Visual
-from .components.action import Action
-from .components.ai import player as player_ai
-from .esper_ext import RunWhile, WorldExt, debug_world
-from .mapgen import generate_monsters, random_map
-from .processors import (
+from pyrl import config
+from pyrl.components import Collider, Energy, Fighter, Name, Player, Visual
+from pyrl.components.action import Action
+from pyrl.components.ai import player as player_ai
+from pyrl.components.visual import RenderOrder
+from pyrl.esper_ext import RunWhile, WorldExt, debug_world
+from pyrl.mapgen import generate_monsters, random_map
+from pyrl.processors import (
     AiProcessor,
     CollisionProcessor,
     FovProcessor,
     InputProcessor,
+    MonsterDeathProcessor,
     MoveAndMeleeProcessor,
     MovementProcessor,
+    PlayerDeathProcessor,
     PonderProcessor,
     RenderProcessor,
     SkipProcessor,
     TimeProcessor,
 )
-from .resources import Fov, Map, input_action
-from .resources.input_action import InputAction, noop
+from pyrl.resources import Fov, Map, Messages, input_action
+from pyrl.resources.input_action import InputAction, noop
 
 
 def add_processors(world: WorldExt) -> None:
@@ -38,6 +41,8 @@ def add_processors(world: WorldExt) -> None:
                 CollisionProcessor(),
                 MovementProcessor(),
                 PonderProcessor(),
+                PlayerDeathProcessor(),
+                MonsterDeathProcessor(),
             ],
         ),
         TimeProcessor(),
@@ -62,13 +67,13 @@ def add_player(world: WorldExt) -> None:
     map = world.get_resource(Map)
     world.create_entity(
         map.spawn_position,
-        Visual("@", tcod.white),
+        Visual("@", tcod.white, RenderOrder.Actor),
         player_ai,
         Player(),
         Name("Player"),
         Collider(),
         Energy(1),
-        Fighter(hp=30, defense=2, power=5,),
+        Fighter.new(hp=30, defense=2, power=5,),
     )
 
 
@@ -79,6 +84,7 @@ def build_world() -> WorldExt:
     map = random_map()
     world.add_resource(map)
     world.add_resource(Fov(map))
+    world.add_resource(Messages(5))
 
     add_player(world)
     generate_monsters(world)
@@ -103,14 +109,27 @@ def init_tcod():
     return root
 
 
+def should_quit(world: WorldExt) -> bool:
+    return world.get_resource(input_action.InputAction) is input_action.quit
+
+
+def player_alive(world: WorldExt) -> bool:
+    return bool(world.get_component(Player))
+
+
 def main():
     world = build_world()
 
     world.add_resource(init_tcod())
     world.add_resource(input_action.noop)
 
-    while world.get_resource(input_action.InputAction) is not input_action.quit:
+    while not should_quit(world) and player_alive(world):
         world.process()
+
+        messages = world.get_resource(Messages)
+        for message in messages.messages:
+            print(message.message)
+        messages.clear()
 
 
 if __name__ == "__main__":

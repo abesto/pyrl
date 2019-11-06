@@ -15,13 +15,13 @@ class Action(ABC):
 Action.component_type = Action
 
 
-@dataclass
+@dataclass(frozen=True)
 class SimpleAction(Action):
     name: str
     energy_cost: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class Skip(Action):
     ticks: int
 
@@ -31,7 +31,7 @@ class Skip(Action):
         return self.ticks
 
 
-@dataclass
+@dataclass(frozen=True)
 class MoveOrMelee(Action):
     vector: Vector
     attack_player: bool

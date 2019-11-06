@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 
 from dataclasses import dataclass
+from enum import Enum
 
 from tcod.color import Color
 
 
-@dataclass
+class RenderOrder(Enum):
+    Corpse = 1
+    Item = 2
+    Actor = 3
+
+
+@dataclass(frozen=True)
 class Visual:
     char: str
     color: Color
-
-    def __post_init__(self):
-        self.char = self.char[0]
+    render_order: RenderOrder

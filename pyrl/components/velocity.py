@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from ..vector import Vector
 
 
-@dataclass
+@dataclass(frozen=True)
 class Velocity:
     vector: Vector

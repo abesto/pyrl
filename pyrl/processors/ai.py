@@ -79,18 +79,22 @@ class AiProcessor(Processor):
         # Compute the path between self's coordinates and the target's coordinates
         tcod.path_compute(my_path, src.x, src.y, dst.x, dst.y)
 
+        vector = None
+
         # Check if the path exists, and in this case, also the path is shorter than 25 tiles
         # The path size matters if you want the monster to use alternative longer paths (for example through other rooms) if for example the player is in a corridor
         # It makes sense to keep path size relatively low to keep the monsters from running around the map if there's an alternative path really far away
         if not tcod.path_is_empty(my_path) and tcod.path_size(my_path) < 25:
             # Find the next coordinates in the computed full path
             x, y = tcod.path_walk(my_path, True)
-            if x and y:
-                return (Vector(x, y) - src).norm()
-        else:
+            if x is not None and y is not None:
+                vector = (Vector(x, y) - src).norm()
+
+        if vector is None:
             # Keep the old move function as a backup so that if there are no paths (for example another monster blocks a corridor)
             # it will still try to move towards the player (closer to the corridor opening)
-            return (dst - src).norm()
+            vector = (dst - src).norm()
 
-            # Delete the path to free memory
+        # Delete the path to free memory
         tcod.path_delete(my_path)
+        return vector

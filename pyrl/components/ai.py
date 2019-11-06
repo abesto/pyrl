@@ -11,7 +11,7 @@ class Kind(Enum):
     Confused = auto()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Ai:
     component_type: ClassVar[Type["Ai"]]
     kind: Kind
@@ -20,9 +20,9 @@ class Ai:
 Ai.component_type = Ai
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConfusedAi(Ai):
-    previoius_ai: Ai
+    previous_ai: Ai
     num_turns: int
 
 

@@ -3,6 +3,8 @@ from random import randint
 
 import tcod.color
 
+from pyrl.components.visual import RenderOrder
+
 from . import config
 from .components import Collider, Energy, Fighter, Name, Position, Visual
 from .components.ai import basic as basic_ai
@@ -99,14 +101,22 @@ def generate_monsters(world: WorldExt) -> None:
                 if randint(0, 100) < 80:
                     world.add_components(
                         monster,
-                        Visual(char="o", color=tcod.desaturated_green),
+                        Visual(
+                            char="o",
+                            color=tcod.desaturated_green,
+                            render_order=RenderOrder.Actor,
+                        ),
                         Name("Orc"),
-                        Fighter(hp=10, defense=0, power=3),
+                        Fighter.new(hp=10, defense=0, power=3),
                     )
                 else:
                     world.add_components(
                         monster,
-                        Visual(char="T", color=tcod.darker_green),
+                        Visual(
+                            char="T",
+                            color=tcod.darker_green,
+                            render_order=RenderOrder.Actor,
+                        ),
                         Name("Troll"),
-                        Fighter(hp=16, defense=1, power=4),
+                        Fighter.new(hp=16, defense=1, power=4),
                     )
