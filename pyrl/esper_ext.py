@@ -78,35 +78,6 @@ class Processor(esper.Processor):
         raise NotImplementedError
 
 
-class RunWhile(Processor):
-    _world: WorldExt
-
-    def __init__(
-        self, condition: Callable[[WorldExt], bool], children: List[Processor]
-    ):
-        self.condition = condition
-        self.children = children
-
-    def process(self, *args, **kwargs):
-        while self.condition(self.world):
-            from .components.action import Action
-
-            # debug_world(self.world, Action)
-            for child in self.children:
-                # print(f"  {type(child)}")
-                child.process(*args, **kwargs)
-
-    @property
-    def world(self) -> WorldExt:
-        return self._world
-
-    @world.setter
-    def world(self, value: WorldExt) -> None:
-        self._world = value
-        for child in self.children:
-            child.world = value
-
-
 def debug_world(world: esper.World, *with_components: Type[Any]) -> None:
     data = []
     for ent, _ in world.get_components(*with_components):

@@ -10,7 +10,7 @@ from pyrl.resources import Messages
 
 
 class MonsterDeathProcessor(Processor):
-    def process(self):
+    def process(self, *args, **kwargs):
         messages = self.world.get_resource(Messages)
         for ent, (name, fighter) in self.world.get_components(Name, Fighter):
             if self.world.has_component(ent, Player):
@@ -18,9 +18,10 @@ class MonsterDeathProcessor(Processor):
             if fighter.hp > 0:
                 continue
 
-            messages.append(f"{name} is dead!", tcod.orange)
+            messages.append(f"{str(name).capitalize()} is dead!", tcod.orange)
             for component in (Fighter, Ai, Collider, Action, Energy):
-                self.world.remove_component(ent, component)
+                if self.world.has_component(ent, component):
+                    self.world.remove_component(ent, component)
             self.world.add_component(
                 ent, Visual("%", tcod.dark_red, RenderOrder.Corpse)
             )

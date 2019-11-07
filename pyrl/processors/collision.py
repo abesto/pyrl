@@ -6,7 +6,7 @@ from ..resources.map import Map
 
 
 class CollisionProcessor(Processor):
-    def process(self):
+    def process(self, *args, **kwargs):
         map = self.world.get_resource(Map)
         for ent, (position, velocity) in self.world.get_components(Position, Velocity):
             candidate_position = position.vector + velocity.vector

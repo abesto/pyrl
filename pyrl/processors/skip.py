@@ -6,10 +6,14 @@ from ..esper_ext import Processor
 
 
 class SkipProcessor(Processor):
-    def process(self):
-        for ent, (action, energy) in self.world.get_components(Action, Energy):
-            if not isinstance(action, Skip):
-                continue
-            if not energy.can_act:
-                continue
-            self.world.add_component(ent, energy.consume(action.energy_cost))
+    def process(self, ent: int):
+        action = self.world.try_component(ent, Action)
+        if not isinstance(action, Skip):
+            return
+
+        energy = self.world.component_for_entity(ent, Energy)
+        if not energy.can_act:
+            return
+
+        self.world.add_component(ent, energy.consume(action.energy_cost))
+        self.world.remove_component(ent, Action)

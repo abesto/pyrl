@@ -34,7 +34,7 @@ def create_v_tunnel(map: Map, y1: int, y2: int, x: int):
 
 
 def dummy_map() -> Map:
-    map = Map(width=config.SCREEN_WIDTH, height=config.SCREEN_HEIGHT)
+    map = Map(width=config.MAP_WIDTH, height=config.MAP_HEIGHT)
     create_room(map, Rect(20, 15, 10, 15))
     create_room(map, Rect(35, 15, 10, 15))
     create_h_tunnel(map, 25, 40, 23)
@@ -42,7 +42,7 @@ def dummy_map() -> Map:
 
 
 def random_map() -> Map:
-    map = Map(width=config.SCREEN_WIDTH, height=config.SCREEN_HEIGHT)
+    map = Map(width=config.MAP_WIDTH, height=config.MAP_HEIGHT)
 
     for _ in range(config.MAX_ROOMS):
         # random width and height

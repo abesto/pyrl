@@ -9,13 +9,14 @@ from pyrl.components import Collider, Energy, Fighter, Name, Player, Visual
 from pyrl.components.action import Action
 from pyrl.components.ai import player as player_ai
 from pyrl.components.visual import RenderOrder
-from pyrl.esper_ext import RunWhile, WorldExt, debug_world
+from pyrl.esper_ext import WorldExt, debug_world
 from pyrl.mapgen import generate_monsters, random_map
 from pyrl.processors import (
     AiProcessor,
     CollisionProcessor,
     FovProcessor,
     InputProcessor,
+    InspectProcessor,
     MonsterDeathProcessor,
     MoveAndMeleeProcessor,
     MovementProcessor,
@@ -26,41 +27,27 @@ from pyrl.processors import (
     TimeProcessor,
 )
 from pyrl.resources import Fov, Map, Messages, input_action
-from pyrl.resources.input_action import InputAction, noop
+from pyrl.world_helpers import RunPerActor
 
 
 def add_processors(world: WorldExt) -> None:
     world.add_processors(
         InputProcessor(),
-        AiProcessor(),
-        RunWhile(
-            there_are_actions_to_take,
-            [
-                SkipProcessor(),
-                MoveAndMeleeProcessor(),
-                CollisionProcessor(),
-                MovementProcessor(),
-                PonderProcessor(),
-                PlayerDeathProcessor(),
-                MonsterDeathProcessor(),
-            ],
+        InspectProcessor(),
+        RunPerActor(
+            AiProcessor(),
+            SkipProcessor(),
+            MoveAndMeleeProcessor(),
+            CollisionProcessor(),
+            MovementProcessor(),
+            PonderProcessor(),
+            PlayerDeathProcessor(),
+            MonsterDeathProcessor(),
         ),
         TimeProcessor(),
         FovProcessor(),
         RenderProcessor(),
     )
-
-
-def there_are_actions_to_take(world: WorldExt) -> bool:
-    have_input = world.try_resource(InputAction) is not noop
-    have_player_action = world.get_components(Action, Player)
-
-    if not have_input and not have_player_action:
-        return False
-    for ent, (energy, _) in world.get_components(Energy, Action):
-        if energy.can_act:
-            return True
-    return False
 
 
 def add_player(world: WorldExt) -> None:
@@ -114,7 +101,10 @@ def should_quit(world: WorldExt) -> bool:
 
 
 def player_alive(world: WorldExt) -> bool:
-    return bool(world.get_component(Player))
+    for _, (_, fighter) in world.get_components(Player, Fighter):
+        if fighter.alive:
+            return True
+    return False
 
 
 def main():
@@ -125,11 +115,6 @@ def main():
 
     while not should_quit(world) and player_alive(world):
         world.process()
-
-        messages = world.get_resource(Messages)
-        for message in messages.messages:
-            print(message.message)
-        messages.clear()
 
 
 if __name__ == "__main__":

@@ -30,3 +30,8 @@ class Move(InputAction):
 
 
 Move.one = {heading: Move(vector) for heading, vector in Vector.unit.items()}
+
+
+@dataclass(frozen=True)
+class Inspect(InputAction):
+    vector: Vector

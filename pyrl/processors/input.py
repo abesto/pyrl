@@ -6,7 +6,7 @@ import tcod.event
 from tcod.event import EventDispatch, KeyDown, Quit
 
 from ..esper_ext import Processor, WorldExt
-from ..resources.input_action import InputAction, Move, noop, quit
+from ..resources.input_action import InputAction, Inspect, Move, noop, quit
 from ..vector import Vector
 
 Keymap = Dict[int, InputAction]
@@ -37,6 +37,10 @@ def event_to_action(event: tcod.event.Event) -> InputAction:
         return quit
     if isinstance(event, tcod.event.KeyDown):
         return simple_keymap.get(event.sym, noop)
+    if isinstance(event, tcod.event.MouseMotion):
+        if event.tile_motion == (0, 0):
+            return noop
+        return Inspect(Vector(int(event.tile[0]), int(event.tile[1])))
     return noop
 
 

@@ -8,18 +8,19 @@ from pyrl.components.ai import Ai
 from pyrl.components.ai import Kind as AiKind
 from pyrl.esper_ext import Processor
 from pyrl.resources import Map, fov, input_action
+from pyrl.resources.input_action import noop
 from pyrl.vector import Vector
 
 
 class AiProcessor(Processor):
-    def process(self):
-        for ent, ai in self.world.get_component(Ai):
-            if ai.kind is AiKind.Player:
-                self._process_player_ai(ent)
-            elif ai.kind is AiKind.Basic:
-                self._process_basic_ai(ent)
-            else:
-                raise NotImplementedError
+    def process(self, ent: int):
+        ai = self.world.component_for_entity(ent, Ai)
+        if ai.kind is AiKind.Player:
+            self._process_player_ai(ent)
+        elif ai.kind is AiKind.Basic:
+            self._process_basic_ai(ent)
+        else:
+            raise NotImplementedError
 
     def _process_player_ai(self, ent: int) -> None:
         action = self.world.get_resource(input_action.InputAction)
@@ -30,9 +31,13 @@ class AiProcessor(Processor):
                     vector=action.vector, attack_monster=True, attack_player=False,
                 ),
             )
+            self.world.add_resource(noop)
 
     def _process_basic_ai(self, ent: int) -> None:
-        player, (player_position, _) = self.world.get_components(Position, Player)[0]
+        match = self.world.get_components(Position, Player)
+        if not match:
+            return
+        player, (player_position, _) = match[0]
         position = self.world.component_for_entity(ent, Position)
         fov_map = self.world.get_resource(fov.Fov).fov_map
 
