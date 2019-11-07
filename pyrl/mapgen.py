@@ -3,6 +3,7 @@ from random import randint
 
 import tcod.color
 
+from pyrl.components.item import Item
 from pyrl.components.visual import RenderOrder
 
 from . import config
@@ -120,3 +121,26 @@ def generate_monsters(world: WorldExt) -> None:
                         Name("Troll"),
                         Fighter.new(hp=16, defense=1, power=4),
                     )
+
+
+def generate_items(world: WorldExt) -> None:
+    map = world.get_resource(Map)
+
+    for room in map.rooms:
+        number_of_items = randint(0, config.MAX_ITEMS_PER_ROOM)
+
+        for i in range(number_of_items):
+            position = Position(
+                Vector(
+                    x=randint(room.x1 + 1, room.x2 - 1),
+                    y=randint(room.y1 + 1, room.y2 - 1),
+                )
+            )
+
+            if not any(match[1] == position for match in world.get_component(Position)):
+                world.create_entity(
+                    position,
+                    Visual("!", tcod.violet, RenderOrder.Item),
+                    Name("Healing Potion"),
+                    Item.HEALING_POTION,
+                )

@@ -32,6 +32,9 @@ class WorldExt(esper.World):
     def try_resource(self, resource_type: Type[T]) -> Optional[T]:
         return self.resources.get(resource_type, None)
 
+    def remove_resource(self, resource_type: T) -> None:
+        del self.resources[resource_type]
+
     def add_component(self, entity: int, component_instance: Any) -> None:
         """Add a new Component instance to an Entity.
 

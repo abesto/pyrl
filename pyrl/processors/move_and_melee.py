@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from dataclasses import replace
-
 from pyrl.components import Collider, Energy, Fighter, Name, Player, Position, Velocity
 from pyrl.components.action import Action, MoveOrMelee
 from pyrl.esper_ext import Processor
@@ -48,8 +46,7 @@ class MoveAndMeleeProcessor(Processor):
 
             if damage > 0:
                 self.world.add_component(
-                    target_entity,
-                    replace(target_fighter, hp=target_fighter.hp - damage),
+                    target_entity, target_fighter.take_damage(damage),
                 )
                 messages.append(
                     f"{attacker_name} attacks {target_name} for {damage} hit points"

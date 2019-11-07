@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Optional
 
 
@@ -20,3 +20,9 @@ class Fighter:
     @property
     def alive(self) -> bool:
         return self.hp > 0
+
+    def heal(self, amount: int) -> "Fighter":
+        return replace(self, hp=min(self.max_hp, self.hp + amount))
+
+    def take_damage(self, amount: int) -> "Fighter":
+        return replace(self, hp=max(0, self.hp - amount))

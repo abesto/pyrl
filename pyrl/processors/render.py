@@ -4,7 +4,7 @@ import tcod.color
 import tcod.console
 
 from pyrl.components import Collider, Fighter, Player
-from pyrl.resources import Messages
+from pyrl.resources import Menu, Messages
 
 from .. import config
 from ..components import Position, Visual
@@ -26,6 +26,8 @@ class RenderProcessor(Processor):
         self._process_healthbar(panel)
         self._process_messages(panel)
         panel.blit(root, dest_y=config.PANEL_Y)
+
+        self._process_menu(root)
 
         tcod.console_flush()
 
@@ -117,4 +119,48 @@ class RenderProcessor(Processor):
             f"{name}: {value}/{maximum}",
             bg_blend=tcod.BKGND_NONE,
             alignment=tcod.CENTER,
+        )
+
+    def _process_menu(self, console: tcod.console.Console):
+        menu = self.world.try_resource(Menu)
+        if not menu:
+            return
+
+        if len(menu.options) > 26:
+            raise ValueError("Cannot have a menu with more than 26 options.")
+
+        # calculate total height for the header (after auto-wrap) and one line per option
+        header_height = console.get_height_rect(
+            0, 0, menu.width, config.SCREEN_HEIGHT, menu.header
+        )
+        height = len(menu.options) + header_height
+
+        # create an off-screen console that represents the menu's window
+        window = tcod.console_new(menu.width, height)
+
+        # print the header, with auto-wrap
+        window.print_rect(
+            0,
+            0,
+            menu.width,
+            height,
+            menu.header,
+            bg_blend=tcod.BKGND_NONE,
+            alignment=tcod.LEFT,
+        )
+
+        # print all the options
+        y = header_height
+        letter_index = ord("a")
+        for option_text in menu.options:
+            text = "(" + chr(letter_index) + ") " + option_text
+            window.print(0, y, text, bg_blend=tcod.BKGND_NONE)
+            y += 1
+            letter_index += 1
+
+        # blit the contents of "window" to the root console
+        x = int(config.SCREEN_WIDTH / 2 - menu.width / 2)
+        y = int(config.SCREEN_HEIGHT / 2 - height / 2)
+        window.blit(
+            console, dest_x=x, dest_y=y, width=menu.width, height=height, bg_alpha=0.7
         )

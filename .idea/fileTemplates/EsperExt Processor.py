@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from ..esper_ext import Processor
+from pyrl.esper_ext import Processor
 
 
 class ${StringUtils.removeAndHump($NAME)}Processor(Processor):

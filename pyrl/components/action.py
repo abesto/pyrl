@@ -39,9 +39,30 @@ class MoveOrMelee(Action):
 
     # https://github.com/python/mypy/issues/4125
     @property
-    def energy_cost(self) -> int:  # type: ignore
+    def energy_cost(self) -> int:
         return int(self.vector.length)
 
 
+@dataclass(frozen=True)
+class UseFromInventory(Action):
+    index: int
+
+    # https://github.com/python/mypy/issues/4125
+    @property
+    def energy_cost(self) -> int:
+        return 1
+
+
+@dataclass(frozen=True)
+class DropFromInventory(Action):
+    index: int
+
+    # https://github.com/python/mypy/issues/4125
+    @property
+    def energy_cost(self) -> int:
+        return 1
+
+
 ponder = SimpleAction("ponder", 1)
+pickup = SimpleAction("pickup", 1)
 skip_one = Skip(1)

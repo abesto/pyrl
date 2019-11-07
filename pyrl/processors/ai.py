@@ -3,21 +3,27 @@
 import tcod
 
 from pyrl.components import Collider, Player, Position
-from pyrl.components.action import Action, MoveOrMelee, skip_one
+from pyrl.components.action import (
+    Action,
+    DropFromInventory,
+    MoveOrMelee,
+    UseFromInventory,
+    pickup,
+    skip_one,
+)
 from pyrl.components.ai import Ai
 from pyrl.components.ai import Kind as AiKind
 from pyrl.esper_ext import Processor
 from pyrl.resources import Map, fov, input_action
-from pyrl.resources.input_action import noop
 from pyrl.vector import Vector
 
 
 class AiProcessor(Processor):
     def process(self, ent: int):
         ai = self.world.component_for_entity(ent, Ai)
-        if ai.kind is AiKind.Player:
+        if ai.kind is AiKind.PLAYER:
             self._process_player_ai(ent)
-        elif ai.kind is AiKind.Basic:
+        elif ai.kind is AiKind.BASIC:
             self._process_basic_ai(ent)
         else:
             raise NotImplementedError
@@ -31,7 +37,19 @@ class AiProcessor(Processor):
                     vector=action.vector, attack_monster=True, attack_player=False,
                 ),
             )
-            self.world.add_resource(noop)
+            self.world.add_resource(input_action.noop)
+
+        elif action is input_action.pickup:
+            self.world.add_component(ent, pickup)
+            self.world.add_resource(input_action.noop)
+
+        elif isinstance(action, input_action.UseFromInventory):
+            self.world.add_component(ent, UseFromInventory(action.index))
+            self.world.add_resource(input_action.noop)
+
+        elif isinstance(action, input_action.DropFromInventory):
+            self.world.add_component(ent, DropFromInventory(action.index))
+            self.world.add_resource(input_action.noop)
 
     def _process_basic_ai(self, ent: int) -> None:
         match = self.world.get_components(Position, Player)

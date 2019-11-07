@@ -5,26 +5,29 @@ import tcod.console
 import tcod.event
 
 from pyrl import config
-from pyrl.components import Collider, Energy, Fighter, Name, Player, Visual
-from pyrl.components.action import Action
+from pyrl.components import Collider, Energy, Fighter, Inventory, Name, Player, Visual
 from pyrl.components.ai import player as player_ai
 from pyrl.components.visual import RenderOrder
-from pyrl.esper_ext import WorldExt, debug_world
-from pyrl.mapgen import generate_monsters, random_map
+from pyrl.esper_ext import WorldExt
+from pyrl.mapgen import generate_items, generate_monsters, random_map
 from pyrl.processors import (
     AiProcessor,
     CollisionProcessor,
+    DropProcessor,
     FovProcessor,
     InputProcessor,
     InspectProcessor,
+    MenuProcessor,
     MonsterDeathProcessor,
     MoveAndMeleeProcessor,
     MovementProcessor,
+    PickupProcessor,
     PlayerDeathProcessor,
     PonderProcessor,
     RenderProcessor,
     SkipProcessor,
     TimeProcessor,
+    UseItemProcessor,
 )
 from pyrl.resources import Fov, Map, Messages, input_action
 from pyrl.world_helpers import RunPerActor
@@ -32,12 +35,20 @@ from pyrl.world_helpers import RunPerActor
 
 def add_processors(world: WorldExt) -> None:
     world.add_processors(
+        # Get, handle input
         InputProcessor(),
         InspectProcessor(),
+        MenuProcessor(),
         RunPerActor(
+            # Compute the next action
             AiProcessor(),
+            # Execute action
             SkipProcessor(),
             MoveAndMeleeProcessor(),
+            PickupProcessor(),
+            UseItemProcessor(),
+            DropProcessor(),
+            # Compute results
             CollisionProcessor(),
             MovementProcessor(),
             PonderProcessor(),
@@ -61,6 +72,7 @@ def add_player(world: WorldExt) -> None:
         Collider(),
         Energy(1),
         Fighter.new(hp=30, defense=2, power=5,),
+        Inventory(26),
     )
 
 
@@ -75,6 +87,7 @@ def build_world() -> WorldExt:
 
     add_player(world)
     generate_monsters(world)
+    generate_items(world)
 
     return world
 

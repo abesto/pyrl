@@ -6,9 +6,9 @@ from typing import ClassVar, Type
 
 
 class Kind(Enum):
-    Player = auto()
-    Basic = auto()
-    Confused = auto()
+    PLAYER = auto()
+    BASIC = auto()
+    CONFUSED = auto()
 
 
 @dataclass(frozen=True)
@@ -26,5 +26,5 @@ class ConfusedAi(Ai):
     num_turns: int
 
 
-basic = Ai(Kind.Basic)
-player = Ai(Kind.Player)
+basic = Ai(Kind.BASIC)
+player = Ai(Kind.PLAYER)
