@@ -147,17 +147,24 @@ def generate_items(world: WorldExt) -> None:
                         Name("Healing Potion"),
                         Item.HEALING_POTION,
                     )
-                elif item_chance < 90:
+                elif item_chance < 80:
                     world.create_entity(
                         position,
                         Visual("#", tcod.red, RenderOrder.Item),
                         Name("Fireball Scroll"),
                         Item.FIREBALL_SCROLL,
                     )
-                else:
+                elif item_chance < 90:
                     world.create_entity(
                         position,
                         Visual("#", tcod.yellow, RenderOrder.Item),
                         Name("Lightning Scroll"),
                         Item.LIGHTNING_SCROLL,
+                    )
+                else:
+                    world.create_entity(
+                        position,
+                        Visual("#", tcod.purple, RenderOrder.Item),
+                        Name("Confusion Scroll"),
+                        Item.CONFUSION_SCROLL,
                     )

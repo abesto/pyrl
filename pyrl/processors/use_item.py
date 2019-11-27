@@ -3,6 +3,7 @@ import tcod
 
 from pyrl.components import Energy, Fighter, Inventory, Name, Player, Position
 from pyrl.components.action import Action, UseFromInventory
+from pyrl.components.ai import Ai, ConfusedAi
 from pyrl.components.item import Item
 from pyrl.esper_ext import Processor
 from pyrl.resources import Fov, Messages
@@ -31,10 +32,11 @@ class UseItemProcessor(Processor):
             else:
                 messages.append("Your wounds start to feel better!", tcod.green)
                 self.world.add_component(actor, fighter.heal(4))
-                self.world.add_component(actor, inventory.remove_item_at(action.index))
                 self.world.add_component(actor, energy.consume(action.energy_cost))
+                self.world.add_component(actor, inventory.remove_item_at(action.index))
+                self.world.delete_entity(item_ent)
 
-        if item is Item.LIGHTNING_SCROLL:
+        elif item is Item.LIGHTNING_SCROLL:
             damage = 20
             maximum_range = 5
             fov_map = self.world.get_resource(Fov).fov_map
@@ -66,8 +68,9 @@ class UseItemProcessor(Processor):
                 )
                 self.world.add_component(target, fighter.take_damage(damage))
                 self.world.add_component(actor, inventory.remove_item_at(action.index))
+                self.world.delete_entity(item_ent)
 
-        if item is Item.FIREBALL_SCROLL:
+        elif item is Item.FIREBALL_SCROLL:
             fov_map = self.world.get_resource(Fov).fov_map
             damage = 12
             radius = 3
@@ -97,6 +100,40 @@ class UseItemProcessor(Processor):
                         )
                         self.world.add_component(candidate, fighter.take_damage(damage))
                 self.world.add_component(actor, inventory.remove_item_at(action.index))
+                self.world.delete_entity(item_ent)
+
+        elif item is Item.CONFUSION_SCROLL:
+            fov_map = self.world.get_resource(Fov).fov_map
+            target = action.target
+
+            if target is None:
+                raise Exception(
+                    "Target should be set for using a scroll of confusion, something went wrong :("
+                )
+
+            if not fov_map.fov[target.y, target.x]:
+                messages.append(
+                    "You cannot target a tile outside your field of view.", tcod.yellow
+                )
+            else:
+                for ent, (position, name, ai) in self.world.get_components(
+                    Position, Name, Ai
+                ):
+                    if position.vector == target:
+                        self.world.add_component(ent, ConfusedAi.new(ai, 10))
+                        self.world.get_resource(Messages).append(
+                            f"The eyes of the {name} look vacant, as he starts to stumble around!",
+                            tcod.light_green,
+                        )
+                        self.world.add_component(
+                            actor, inventory.remove_item_at(action.index)
+                        )
+                        self.world.delete_entity(item_ent)
+                        break
+                else:
+                    self.world.get_resource(Messages).append(
+                        "There is no targetable enemy at that location.", tcod.yellow
+                    )
 
         else:
             name = self.world.component_for_entity(item_ent, Name)

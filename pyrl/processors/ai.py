@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+from random import randint
 
 import tcod
 
-from pyrl.components import Collider, Inventory, Player, Position
+from pyrl.components import Collider, Inventory, Name, Player, Position
 from pyrl.components.action import (
     Action,
     DropFromInventory,
@@ -11,11 +12,11 @@ from pyrl.components.action import (
     pickup,
     skip_one,
 )
-from pyrl.components.ai import Ai
+from pyrl.components.ai import Ai, ConfusedAi
 from pyrl.components.ai import Kind as AiKind
 from pyrl.components.item import Item
 from pyrl.esper_ext import Processor
-from pyrl.resources import Map, Targeting, fov, input_action
+from pyrl.resources import Map, Messages, Targeting, fov, input_action
 from pyrl.vector import Vector
 
 
@@ -26,6 +27,8 @@ class AiProcessor(Processor):
             self._process_player_ai(ent)
         elif ai.kind is AiKind.BASIC:
             self._process_basic_ai(ent)
+        elif ai.kind is AiKind.CONFUSED and isinstance(ai, ConfusedAi):
+            self._process_confused_ai(ent, ai)
         else:
             raise NotImplementedError
 
@@ -45,14 +48,17 @@ class AiProcessor(Processor):
             self.world.add_resource(input_action.noop)
 
         elif isinstance(action, input_action.UseFromInventory):
-            item = self.world.component_for_entity(ent, Inventory).items[action.index]
-            if self.world.component_for_entity(item, Item).needs_targeting:
+            item_ent = self.world.component_for_entity(ent, Inventory).items[
+                action.index
+            ]
+            item = self.world.component_for_entity(item_ent, Item)
+            if item.needs_targeting:
                 target = action.target
                 if target is None:
                     self.world.add_resource(
                         Targeting(
                             action.index,
-                            3,
+                            item.targeting_radius,
                             self.world.component_for_entity(ent, Position).vector,
                         )
                     )
@@ -91,6 +97,28 @@ class AiProcessor(Processor):
             action = skip_one
 
         self.world.add_component(ent, action)
+
+    def _process_confused_ai(self, ent: int, ai: ConfusedAi) -> None:
+        if ai.num_turns > 0:
+            random_x = randint(0, 2) - 1
+            random_y = randint(0, 2) - 1
+
+            if random_x != 0 and random_y != 0:
+                self.world.add_component(
+                    ent,
+                    MoveOrMelee(
+                        vector=Vector(random_x, random_y),
+                        attack_monster=True,
+                        attack_player=True,
+                    ),
+                )
+            self.world.add_component(ent, ai.tick_down())
+        else:
+            self.world.add_component(ent, ai.previous_ai)
+            name = self.world.component_for_entity(ent, Name)
+            self.world.get_resource(Messages).append(
+                f"The {name} is no longer confused!", tcod.red
+            )
 
     def _astar_step(self, src: Vector, dst: Vector) -> Vector:
         # Create a FOV map that has the dimensions of the map

@@ -25,6 +25,13 @@ class ConfusedAi(Ai):
     previous_ai: Ai
     num_turns: int
 
+    @classmethod
+    def new(cls, previous_ai: Ai, num_turns: int) -> "ConfusedAi":
+        return ConfusedAi(Kind.CONFUSED, previous_ai, num_turns)
+
+    def tick_down(self) -> "ConfusedAi":
+        return ConfusedAi.new(self.previous_ai, self.num_turns - 1)
+
 
 basic = Ai(Kind.BASIC)
 player = Ai(Kind.PLAYER)
