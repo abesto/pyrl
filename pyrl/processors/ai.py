@@ -2,7 +2,7 @@
 
 import tcod
 
-from pyrl.components import Collider, Player, Position
+from pyrl.components import Collider, Inventory, Player, Position
 from pyrl.components.action import (
     Action,
     DropFromInventory,
@@ -13,8 +13,9 @@ from pyrl.components.action import (
 )
 from pyrl.components.ai import Ai
 from pyrl.components.ai import Kind as AiKind
+from pyrl.components.item import Item
 from pyrl.esper_ext import Processor
-from pyrl.resources import Map, fov, input_action
+from pyrl.resources import Map, Targeting, fov, input_action
 from pyrl.vector import Vector
 
 
@@ -44,7 +45,27 @@ class AiProcessor(Processor):
             self.world.add_resource(input_action.noop)
 
         elif isinstance(action, input_action.UseFromInventory):
-            self.world.add_component(ent, UseFromInventory(action.index))
+            item = self.world.component_for_entity(ent, Inventory).items[action.index]
+            if self.world.component_for_entity(item, Item).needs_targeting:
+                target = action.target
+                if target is None:
+                    self.world.add_resource(
+                        Targeting(
+                            action.index,
+                            3,
+                            self.world.component_for_entity(ent, Position).vector,
+                        )
+                    )
+                else:
+                    self.world.add_component(
+                        ent, UseFromInventory(action.index, target)
+                    )
+            else:
+                self.world.add_component(ent, UseFromInventory(action.index))
+            self.world.add_resource(input_action.noop)
+
+        elif action is input_action.cancel_targeting:
+            self.world.remove_resource(Targeting)
             self.world.add_resource(input_action.noop)
 
         elif isinstance(action, input_action.DropFromInventory):

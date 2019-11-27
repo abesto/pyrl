@@ -2,7 +2,7 @@
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import ClassVar, Type
+from typing import ClassVar, Optional, Type
 
 from ..vector import Vector
 
@@ -46,6 +46,7 @@ class MoveOrMelee(Action):
 @dataclass(frozen=True)
 class UseFromInventory(Action):
     index: int
+    target: Optional[Vector] = None
 
     # https://github.com/python/mypy/issues/4125
     @property

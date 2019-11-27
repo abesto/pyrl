@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from dataclasses import dataclass, field
-from typing import ClassVar, Dict, Type
+from typing import ClassVar, Dict, Optional, Type
 
 from ..vector import Vector
 
@@ -24,6 +24,7 @@ pickup = SimpleInputAction("pickup")
 open_inventory = SimpleInputAction("open_inventory")
 open_drop_menu = SimpleInputAction("open_drop_menu")
 dismiss_menu = SimpleInputAction("close_menu")
+cancel_targeting = SimpleInputAction("cancel_targeting")
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,7 @@ class MenuChoice(InputAction):
 @dataclass(frozen=True)
 class UseFromInventory(InputAction):
     index: int
+    target: Optional[Vector] = None
 
 
 @dataclass(frozen=True)

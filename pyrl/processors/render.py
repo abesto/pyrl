@@ -4,7 +4,8 @@ import tcod.color
 import tcod.console
 
 from pyrl.components import Collider, Fighter, Player
-from pyrl.resources import Menu, Messages
+from pyrl.resources import Menu, Messages, Targeting
+from pyrl.vector import Vector
 
 from .. import config
 from ..components import Position, Visual
@@ -20,6 +21,7 @@ class RenderProcessor(Processor):
         map_panel = tcod.console.Console(config.MAP_WIDTH, config.MAP_HEIGHT)
         self._process_map(map_panel)
         self._process_entities(map_panel)
+        self._process_targeting(map_panel)
         map_panel.blit(root)
 
         panel = tcod.console.Console(config.SCREEN_WIDTH, config.PANEL_HEIGHT)
@@ -59,6 +61,31 @@ class RenderProcessor(Processor):
                 console.print(
                     x, y, char, bg=config.theme.background_color(wall, visible)
                 )
+
+    def _process_targeting(self, console: tcod.console.Console) -> None:
+        targeting = self.world.try_resource(Targeting)
+        if targeting is None:
+            return
+
+        fov_map = self.world.get_resource(Fov).fov_map
+        topleft = targeting.current_target - Vector(targeting.radius, targeting.radius)
+        bottomright = targeting.current_target + Vector(
+            targeting.radius, targeting.radius
+        )
+        for x in range(topleft.x, bottomright.x + 1):
+            for y in range(topleft.y, bottomright.y + 1):
+                try:
+                    # Not very smart, but at least it's simple
+                    if (
+                        targeting.current_target - Vector(x, y)
+                    ).length > targeting.radius:
+                        continue
+                    if not fov_map.fov[y, x]:
+                        continue
+                except IndexError:
+                    pass
+                else:
+                    console.bg[y, x] = tcod.desaturated_green
 
     def _process_healthbar(self, console: tcod.console.Console) -> None:
         ent, (_, fighter) = self.world.get_components(Player, Fighter)[0]

@@ -138,9 +138,26 @@ def generate_items(world: WorldExt) -> None:
             )
 
             if not any(match[1] == position for match in world.get_component(Position)):
-                world.create_entity(
-                    position,
-                    Visual("!", tcod.violet, RenderOrder.Item),
-                    Name("Healing Potion"),
-                    Item.HEALING_POTION,
-                )
+                item_chance = randint(0, 100)
+
+                if item_chance < 70:
+                    world.create_entity(
+                        position,
+                        Visual("!", tcod.violet, RenderOrder.Item),
+                        Name("Healing Potion"),
+                        Item.HEALING_POTION,
+                    )
+                elif item_chance < 90:
+                    world.create_entity(
+                        position,
+                        Visual("#", tcod.red, RenderOrder.Item),
+                        Name("Fireball Scroll"),
+                        Item.FIREBALL_SCROLL,
+                    )
+                else:
+                    world.create_entity(
+                        position,
+                        Visual("#", tcod.yellow, RenderOrder.Item),
+                        Name("Lightning Scroll"),
+                        Item.LIGHTNING_SCROLL,
+                    )
