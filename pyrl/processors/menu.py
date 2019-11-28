@@ -9,9 +9,12 @@ from pyrl.resources.input_action import (
     MenuChoice,
     UseFromInventory,
     dismiss_menu,
+    load,
+    new_game,
     noop,
     open_drop_menu,
     open_inventory,
+    quit,
 )
 from pyrl.resources.menu import MenuType
 
@@ -52,7 +55,10 @@ class MenuProcessor(Processor):
                 )
             self.world.add_resource(noop)
 
-        elif input_action is dismiss_menu:
+        elif (
+            input_action is dismiss_menu
+            and self.world.get_resource(Menu).menu_type is not MenuType.MAIN
+        ):
             self.world.remove_resource(Menu)
             self.world.add_resource(noop)
 
@@ -69,6 +75,14 @@ class MenuProcessor(Processor):
             elif menu.menu_type is MenuType.DROP:
                 self.world.add_resource(DropFromInventory(input_action.choice))
                 self.world.remove_resource(Menu)
+
+            elif menu.menu_type is MenuType.MAIN:
+                new_action = {0: new_game, 1: load, 2: quit}.get(
+                    input_action.choice, noop
+                )
+                self.world.add_resource(new_action)
+                if new_action is not noop:
+                    self.world.remove_resource(Menu)
 
             else:
                 raise NotImplementedError()

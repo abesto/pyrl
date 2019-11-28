@@ -2,13 +2,17 @@
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
+from appdirs import user_data_dir
 from tcod.color import Color
 
 SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 
-FONT_PATH = os.path.join("assets", "arial10x10.png")
+ASSETS_DIR = Path("assets")
+FONT_PATH = ASSETS_DIR / "arial10x10.png"
+MAIN_MENU_BACKGROUND_PATH = ASSETS_DIR / "menu_background1.png"
 
 BAR_WIDTH = 20
 PANEL_HEIGHT = 7
@@ -28,11 +32,14 @@ ROOM_MIN_SIZE = 6
 MAX_ROOMS = 30
 
 MAX_MONSTERS_PER_ROOM = 3
-MAX_ITEMS_PER_ROOM = 20
+MAX_ITEMS_PER_ROOM = 2
 
 FOV_ALGORITHM = 0
 FOV_LIGHT_WALLS = True
 FOV_RADIUS = 10
+
+DATADIR = Path(user_data_dir("pyrl", "abesto"))
+SAVEFILE = DATADIR / "save.dat"
 
 
 @dataclass

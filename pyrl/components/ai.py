@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import ClassVar, Type
 
+from pyrl.saveload import persistence_tag
+
 
 class Kind(Enum):
     PLAYER = auto()
@@ -12,6 +14,7 @@ class Kind(Enum):
 
 
 @dataclass(frozen=True)
+@persistence_tag
 class Ai:
     component_type: ClassVar[Type["Ai"]]
     kind: Kind

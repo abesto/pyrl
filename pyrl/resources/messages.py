@@ -5,6 +5,8 @@ from typing import List
 
 import tcod.color
 
+from pyrl.saveload import persist_resource
+
 
 @dataclass(frozen=True)
 class Message:
@@ -13,6 +15,7 @@ class Message:
 
 
 @dataclass
+@persist_resource
 class Messages:
     limit: int
     messages: List[Message] = field(default_factory=list)

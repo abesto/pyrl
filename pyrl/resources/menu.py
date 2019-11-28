@@ -8,6 +8,7 @@ from typing import List
 class MenuType(Enum):
     INVENTORY = auto()
     DROP = auto()
+    MAIN = auto()
 
 
 @dataclass(frozen=True)
@@ -16,3 +17,11 @@ class Menu:
     header: str
     options: List[str]
     width: int
+
+
+main_menu = Menu(
+    menu_type=MenuType.MAIN,
+    header="TOMBS OF THE ANCIENT KINGS",
+    options=["Play a new game", "Continue last game", "Quit"],
+    width=24,
+)

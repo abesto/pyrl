@@ -13,12 +13,15 @@ class InputAction:
 InputAction.resource_type = InputAction
 
 
-@dataclass
+@dataclass(frozen=True)
 class SimpleInputAction(InputAction):
     name: str
 
 
 noop = SimpleInputAction("noop")
+new_game = SimpleInputAction("new_game")
+quit_to_main_menu = SimpleInputAction("quit_to_main_menu")
+load = SimpleInputAction("load")
 quit = SimpleInputAction("quit")
 pickup = SimpleInputAction("pickup")
 open_inventory = SimpleInputAction("open_inventory")

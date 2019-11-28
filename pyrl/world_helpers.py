@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from typing import Iterable, Optional
 
-from pyrl.components import Energy, Player
+from pyrl.components import Energy, Fighter, Player
 from pyrl.components.action import Action
 from pyrl.esper_ext import Processor, WorldExt
 from pyrl.resources.input_action import InputAction, noop, quit
@@ -19,6 +19,13 @@ class RunPerActor(Processor):
                 return ent
         return None
 
+    def _player_alive(self) -> bool:
+        for ent, (_, fighter) in self.world.get_components(Player, Fighter):
+            # print(f"player exists. alive: {fighter.alive}")
+            return fighter.alive
+        # print("no player")
+        return False
+
     def _gen_next_actor(self) -> Iterable[int]:
         # First: if the player can move, then they should
         player_that_can_act = self._get_player_that_can_act()
@@ -29,6 +36,9 @@ class RunPerActor(Processor):
             return
         # Then, everyone else can act
         for ent, (energy,) in self.world.get_components(Energy):
+            # Except if the player was killed in the meanwhile
+            if not self._player_alive():
+                return
             if energy.can_act:
                 yield ent
 
@@ -39,6 +49,9 @@ class RunPerActor(Processor):
 
     def process(self, *args, **kwargs) -> None:
         for next_actor in self._gen_next_actor():
+            from pyrl.components import Name
+
+            # print(f"Next: {self.world.component_for_entity(next_actor, Name)}")
             if self.world.has_component(next_actor, Player):
                 have_input = self.world.try_resource(InputAction) not in (noop, quit)
                 have_player_action = bool(self.world.get_components(Action, Player))

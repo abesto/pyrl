@@ -15,7 +15,7 @@ class MonsterDeathProcessor(Processor):
         for ent, (name, fighter) in self.world.get_components(Name, Fighter):
             if self.world.has_component(ent, Player):
                 continue
-            if fighter.hp > 0:
+            if fighter.alive:
                 continue
 
             messages.append(f"{str(name).capitalize()} is dead!", tcod.orange)

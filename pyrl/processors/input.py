@@ -21,6 +21,7 @@ from ..resources.input_action import (
     open_inventory,
     pickup,
     quit,
+    quit_to_main_menu,
 )
 from ..vector import Vector
 
@@ -29,7 +30,7 @@ Keymap = Dict[int, InputAction]
 
 normal_keymap: Keymap = {
     # Quit
-    tcod.event.K_ESCAPE: quit,
+    tcod.event.K_ESCAPE: quit_to_main_menu,
     # Arrow keys
     tcod.event.K_UP: Move.one["n"],
     tcod.event.K_RIGHT: Move.one["e"],
@@ -63,6 +64,7 @@ class InputProcessor(Processor):
 
     def _event_to_action(self, event: tcod.event.Event) -> InputAction:
         if isinstance(event, tcod.event.Quit):
+            # Hey look, save scumming opportunity!
             return quit
 
         if isinstance(event, tcod.event.KeyDown):

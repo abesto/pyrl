@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+from functools import lru_cache
+from pathlib import Path
 
 import tcod.color
 import tcod.console
+import tcod.image
 
-from pyrl.components import Collider, Fighter, Player
+from pyrl.components import Fighter, Player
 from pyrl.resources import Menu, Messages, Targeting
 from pyrl.vector import Vector
 
@@ -15,6 +18,14 @@ from ..resources.map import Map
 
 
 class RenderProcessor(Processor):
+    @staticmethod
+    @lru_cache()
+    def _load_image(path: Path) -> tcod.image.Image:
+        rgba = tcod.image.load(str(path))
+        # Drop alpha channel as Image.from_array doesn't want it
+        rgb = rgba.take((0, 1, 2), 2)
+        return tcod.image.Image.from_array(rgb)
+
     def process(self):
         root = self.world.get_resource(tcod.console.Console)
 
@@ -34,7 +45,11 @@ class RenderProcessor(Processor):
         tcod.console_flush()
 
     def _process_entities(self, console: tcod.console.Console) -> None:
-        fov_map = self.world.get_resource(Fov).fov_map
+        fov = self.world.try_resource(Fov)
+        if fov is None:
+            return
+        fov_map = fov.fov_map
+
         matches = self.world.get_components(Position, Visual)
 
         matches.sort(key=lambda item: item[1][1].render_order.value)
@@ -44,7 +59,9 @@ class RenderProcessor(Processor):
             console.print(position.x, position.y, visual.char, fg=visual.color)
 
     def _process_map(self, console: tcod.console.Console) -> None:
-        map = self.world.get_resource(Map)
+        map = self.world.try_resource(Map)
+        if map is None:
+            return
         fov_map = self.world.get_resource(Fov).fov_map
         for x, column in enumerate(map.tiles):
             for y, tile in enumerate(column):
@@ -88,7 +105,11 @@ class RenderProcessor(Processor):
                     console.bg[y, x] = tcod.desaturated_green
 
     def _process_healthbar(self, console: tcod.console.Console) -> None:
-        ent, (_, fighter) = self.world.get_components(Player, Fighter)[0]
+        matches = self.world.get_components(Player, Fighter)
+        if not matches:
+            return
+        ent, (_, fighter) = matches[0]
+
         self._render_bar(
             console=console,
             x=1,
@@ -102,7 +123,9 @@ class RenderProcessor(Processor):
         )
 
     def _process_messages(self, console: tcod.console.Console) -> None:
-        messages = self.world.get_resource(Messages)
+        messages = self.world.try_resource(Messages)
+        if messages is None:
+            return
         for y, message in enumerate(messages.messages):
             console.print(config.MESSAGE_X, y + 1, message.message, message.color)
 
@@ -155,6 +178,10 @@ class RenderProcessor(Processor):
 
         if len(menu.options) > 26:
             raise ValueError("Cannot have a menu with more than 26 options.")
+
+        # render background if we're on the main menu
+        image = self._load_image(config.MAIN_MENU_BACKGROUND_PATH)
+        image.blit_2x(console, dest_x=0, dest_y=0)
 
         # calculate total height for the header (after auto-wrap) and one line per option
         header_height = console.get_height_rect(

@@ -6,6 +6,7 @@ from .drop import DropProcessor  # NOQA
 from .fov import FovProcessor  # NOQA
 from .input import InputProcessor  # NOQA
 from .inspect import InspectProcessor  # NOQA
+from .main_menu import MainMenuProcessor  # NOQA
 from .menu import MenuProcessor  # NOQA
 from .monster_death import MonsterDeathProcessor  # NOQA
 from .move_and_melee import MoveAndMeleeProcessor  # NOQA

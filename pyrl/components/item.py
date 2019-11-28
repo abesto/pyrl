@@ -2,7 +2,10 @@
 
 from enum import Enum, auto
 
+from pyrl.saveload import persistence_tag
 
+
+@persistence_tag
 class Item(Enum):
     HEALING_POTION = auto()
     LIGHTNING_SCROLL = auto()

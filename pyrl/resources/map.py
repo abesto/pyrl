@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import List
 
+from pyrl.saveload import persist_resource
+
 from ..components import Position
 from ..vector import Vector
 
@@ -56,6 +58,7 @@ class Rect:
 
 
 @dataclass
+@persist_resource
 class Map:
     width: int
     height: int

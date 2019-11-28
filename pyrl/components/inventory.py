@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 from dataclasses import dataclass, field, replace
-from typing import List
+from typing import Dict, List
+
+from pyrl.saveload import PostprocessedComponent
 
 
 class InventoryFullException(Exception):
@@ -9,7 +11,7 @@ class InventoryFullException(Exception):
 
 
 @dataclass(frozen=True)
-class Inventory:
+class Inventory(PostprocessedComponent):
     capacity: int
     items: List[int] = field(default_factory=list)
 
@@ -20,3 +22,6 @@ class Inventory:
 
     def remove_item_at(self, index: int) -> "Inventory":
         return replace(self, items=self.items[:index] + self.items[index + 1 :])
+
+    def postprocess(self, entity_map: Dict[int, int]) -> "Inventory":
+        return replace(self, items=[entity_map[entity] for entity in self.items])
