@@ -11,17 +11,18 @@ from pyrl.components.action import (
     UseFromInventory,
     pickup,
     skip_one,
+    take_stairs,
 )
 from pyrl.components.ai import Ai, ConfusedAi
 from pyrl.components.ai import Kind as AiKind
 from pyrl.components.item import Item
-from pyrl.esper_ext import Processor
 from pyrl.resources import Map, Messages, Targeting, fov, input_action
 from pyrl.vector import Vector
+from pyrl.world_helpers import EntityProcessor
 
 
-class AiProcessor(Processor):
-    def process(self, ent: int):
+class AiProcessor(EntityProcessor):
+    def process_entity(self, ent: int):
         ai = self.world.component_for_entity(ent, Ai)
         if ai.kind is AiKind.PLAYER:
             self._process_player_ai(ent)
@@ -76,6 +77,10 @@ class AiProcessor(Processor):
 
         elif isinstance(action, input_action.DropFromInventory):
             self.world.add_component(ent, DropFromInventory(action.index))
+            self.world.add_resource(input_action.noop)
+
+        elif action is input_action.take_stairs:
+            self.world.add_component(ent, take_stairs)
             self.world.add_resource(input_action.noop)
 
     def _process_basic_ai(self, ent: int) -> None:

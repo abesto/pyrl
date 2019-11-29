@@ -5,10 +5,7 @@ from dataclasses import dataclass
 from pyrl.saveload import persistence_tag
 
 
+@dataclass
 @persistence_tag
-@dataclass(frozen=True)
-class Name:
-    name: str
-
-    def __str__(self) -> str:
-        return self.name
+class Stairs:
+    to_level: int

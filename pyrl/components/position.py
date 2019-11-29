@@ -2,10 +2,13 @@
 
 from dataclasses import dataclass
 
+from pyrl.saveload import persistence_tag
+
 from ..vector import Vector
 from .velocity import Velocity
 
 
+@persistence_tag
 @dataclass(frozen=True)
 class Position:
     vector: Vector

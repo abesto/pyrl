@@ -62,6 +62,7 @@ class Rect:
 class Map:
     width: int
     height: int
+    dungeon_level: int
     rooms: List[Rect] = field(default_factory=lambda: [])
     spawn_position: Position = field(init=False)
     tiles: Tiles = field(init=False)

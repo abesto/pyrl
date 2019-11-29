@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import ClassVar, Dict, Optional, Type
 
 from ..vector import Vector
@@ -24,6 +24,7 @@ quit_to_main_menu = SimpleInputAction("quit_to_main_menu")
 load = SimpleInputAction("load")
 quit = SimpleInputAction("quit")
 pickup = SimpleInputAction("pickup")
+take_stairs = SimpleInputAction("take_stairs")
 open_inventory = SimpleInputAction("open_inventory")
 open_drop_menu = SimpleInputAction("open_drop_menu")
 dismiss_menu = SimpleInputAction("close_menu")

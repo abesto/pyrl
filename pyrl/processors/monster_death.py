@@ -23,6 +23,6 @@ class MonsterDeathProcessor(Processor):
                 if self.world.has_component(ent, component):
                     self.world.remove_component(ent, component)
             self.world.add_component(
-                ent, Visual("%", tcod.dark_red, RenderOrder.Corpse)
+                ent, Visual("%", tcod.dark_red, RenderOrder.CORPSE)
             )
             self.world.add_component(ent, Name(f"remains of {name}"))

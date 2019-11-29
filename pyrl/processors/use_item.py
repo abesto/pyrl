@@ -5,20 +5,15 @@ from pyrl.components import Energy, Fighter, Inventory, Name, Player, Position
 from pyrl.components.action import Action, UseFromInventory
 from pyrl.components.ai import Ai, ConfusedAi
 from pyrl.components.item import Item
-from pyrl.esper_ext import Processor
 from pyrl.resources import Fov, Messages
+from pyrl.world_helpers import ActionProcessor, act
 
 
-class UseItemProcessor(Processor):
-    def process(self, actor: int) -> None:
-        action = self.world.try_component(actor, Action)
-        if not isinstance(action, UseFromInventory):
-            return
-
-        energy = self.world.component_for_entity(actor, Energy)
-        if not energy.can_act:
-            return
-
+class UseItemProcessor(ActionProcessor):
+    @act(UseFromInventory)
+    def process_action(
+        self, actor: int, action: UseFromInventory, energy: Energy
+    ) -> None:
         inventory = self.world.component_for_entity(actor, Inventory)
         item_ent = inventory.items[action.index]
         item = self.world.component_for_entity(item_ent, Item)

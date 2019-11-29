@@ -16,5 +16,6 @@ from .player_death import PlayerDeathProcessor  # NOQA
 from .ponder import PonderProcessor  # NOQA
 from .render import RenderProcessor  # NOQA
 from .skip import SkipProcessor  # NOQA
+from .stairs import StairsProcessor  # NOQA
 from .time import TimeProcessor  # NOQA
 from .use_item import UseItemProcessor  # NOQA

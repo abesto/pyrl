@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-from typing import ClassVar, Dict, Optional
+from typing import Dict, Optional, Tuple, Union
 
 import tcod.event
-from tcod.event import EventDispatch, KeyDown, Quit
 
 from pyrl.resources import Menu, Targeting
 
-from ..esper_ext import Processor, WorldExt
+from ..esper_ext import Processor
 from ..resources.input_action import (
     InputAction,
     Inspect,
@@ -22,10 +21,11 @@ from ..resources.input_action import (
     pickup,
     quit,
     quit_to_main_menu,
+    take_stairs,
 )
 from ..vector import Vector
 
-Keymap = Dict[int, InputAction]
+Keymap = Dict[Union[int, Tuple[int, int]], InputAction]
 
 
 normal_keymap: Keymap = {
@@ -45,6 +45,8 @@ normal_keymap: Keymap = {
     tcod.event.K_u: Move.one["ne"],
     tcod.event.K_b: Move.one["sw"],
     tcod.event.K_n: Move.one["se"],
+    # Down we go,
+    (tcod.event.K_PERIOD, tcod.event.KMOD_SHIFT): take_stairs,
     # Inventory management
     tcod.event.K_g: pickup,
     tcod.event.K_i: open_inventory,
@@ -58,6 +60,24 @@ menu_keymap: Keymap = {tcod.event.K_ESCAPE: dismiss_menu}
 targeting_keymap: Keymap = {tcod.event.K_ESCAPE: cancel_targeting}
 
 
+def keymap_lookup(
+    keymap: Keymap, event: tcod.event.KeyboardEvent
+) -> Optional[InputAction]:
+    # Easy case: exact match with no modifiers
+    if event.mod == 0 and event.sym in keymap:
+        return keymap[event.sym]
+    # Hard case: we have modifiers, so we need to iterate, because for example SHIFT
+    # matches both LSHIFT and RSHIFT.
+    # To optimize, could pre-process the keymap, but meh.
+    for binding, action in keymap.items():
+        if isinstance(binding, int):
+            continue
+        sym, mod = binding
+        if sym == event.sym and event.mod & mod:
+            return action
+    return None
+
+
 class InputProcessor(Processor):
     def __init__(self):
         self._buffered_event: Optional[tcod.event.Event] = None
@@ -69,15 +89,15 @@ class InputProcessor(Processor):
 
         if isinstance(event, tcod.event.KeyDown):
             if self.world.try_resource(Menu) is not None:
-                return menu_keymap.get(
-                    event.sym, MenuChoice(event.sym - tcod.event.K_a)
+                return keymap_lookup(menu_keymap, event) or MenuChoice(
+                    event.sym - tcod.event.K_a
                 )
 
             targeting = self.world.try_resource(Targeting)
             if targeting is not None:
-                return targeting_keymap.get(event.sym, noop)
+                return keymap_lookup(targeting_keymap, event) or noop
 
-            return normal_keymap.get(event.sym, noop)
+            return keymap_lookup(normal_keymap, event) or noop
 
         if isinstance(event, tcod.event.MouseMotion):
             if event.tile_motion == (0, 0):

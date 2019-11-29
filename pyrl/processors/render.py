@@ -38,6 +38,7 @@ class RenderProcessor(Processor):
         panel = tcod.console.Console(config.SCREEN_WIDTH, config.PANEL_HEIGHT)
         self._process_healthbar(panel)
         self._process_messages(panel)
+        self._process_dungeon_level(panel)
         panel.blit(root, dest_y=config.PANEL_Y)
 
         self._process_menu(root)
@@ -128,6 +129,12 @@ class RenderProcessor(Processor):
             return
         for y, message in enumerate(messages.messages):
             console.print(config.MESSAGE_X, y + 1, message.message, message.color)
+
+    def _process_dungeon_level(self, console: tcod.console.Console) -> None:
+        map = self.world.try_resource(Map)
+        if map is None:
+            return
+        console.print(1, 3, f"Dungeon Level: {map.dungeon_level}")
 
     def _render_bar(
         self,

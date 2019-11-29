@@ -3,20 +3,13 @@ import tcod
 
 from pyrl.components import Energy, Inventory, Name, Position
 from pyrl.components.action import Action, DropFromInventory
-from pyrl.esper_ext import Processor
 from pyrl.resources import Messages
+from pyrl.world_helpers import ActionProcessor, act
 
 
-class DropProcessor(Processor):
-    def process(self, ent: int):
-        action = self.world.try_component(ent, Action)
-        if not isinstance(action, DropFromInventory):
-            return
-
-        energy = self.world.component_for_entity(ent, Energy)
-        if not energy.can_act:
-            return
-
+class DropProcessor(ActionProcessor):
+    @act(DropFromInventory)
+    def process_action(self, ent: int, action: DropFromInventory, energy: Energy):
         inventory = self.world.component_for_entity(ent, Inventory)
         item_ent = inventory.items[action.index]
         name = self.world.component_for_entity(item_ent, Name)

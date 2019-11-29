@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-from typing import Iterable, Optional
+import functools
+import inspect
+from typing import Generic, Iterable, Optional, Tuple, Type, TypeVar
 
 from pyrl.components import Energy, Fighter, Player
 from pyrl.components.action import Action
@@ -49,7 +51,6 @@ class RunPerActor(Processor):
 
     def process(self, *args, **kwargs) -> None:
         for next_actor in self._gen_next_actor():
-            from pyrl.components import Name
 
             # print(f"Next: {self.world.component_for_entity(next_actor, Name)}")
             if self.world.has_component(next_actor, Player):
@@ -59,6 +60,7 @@ class RunPerActor(Processor):
                     return
             self._run_children(next_actor)
 
+    # noinspection Mypy
     @property
     def world(self) -> WorldExt:
         return self._world
@@ -68,3 +70,71 @@ class RunPerActor(Processor):
         self._world = value
         for child in self.children:
             child.world = value
+
+
+TAction = TypeVar("TAction", bound=Action)
+
+
+def can_act(world: WorldExt, ent: int) -> bool:
+    energy = world.component_for_entity(ent, Energy)
+    return energy.can_act
+
+
+def has_action(accept_action):
+    def has_action_inner(world: WorldExt, ent: int) -> bool:
+        action = world.try_component(ent, Action)
+        if action is None:
+            return False
+        if inspect.isclass(accept_action):
+            return isinstance(action, accept_action)
+        return action == accept_action
+
+    return has_action_inner
+
+
+def is_player(world: WorldExt, ent: int) -> bool:
+    try:
+        world.component_for_entity(ent, Player)
+    except KeyError:
+        return False
+    return True
+
+
+def guard(*conditions):
+    def wrapper(fun):
+        def inner(self, ent: int, *args, **kwargs):
+            if all(condition(self.world, ent) for condition in conditions):
+                return fun(self, ent, *args, **kwargs)
+
+        return inner
+
+    return wrapper
+
+
+only_player = guard(is_player)
+only_monster = guard(lambda *args: not is_player(*args))
+
+
+def act(accept_action):
+    return guard(has_action(accept_action), can_act)
+
+
+class EntityProcessor(Processor):
+    def process(self, *args, **kwargs) -> None:
+        return self.process_entity(int(args[0]))
+
+    def process_entity(self, ent: int) -> None:
+        raise NotImplementedError
+
+
+class ActionProcessor(EntityProcessor, Generic[TAction]):
+    def process_entity(self, ent: int) -> None:
+        try:
+            action = self.world.component_for_entity(ent, Action)
+            energy = self.world.component_for_entity(ent, Energy)
+        except KeyError:
+            return
+        return self.process_action(ent, action, energy)
+
+    def process_action(self, ent: int, action: TAction, energy: Energy):
+        raise NotImplementedError

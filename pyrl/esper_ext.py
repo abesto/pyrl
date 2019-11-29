@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+from typing import Any, Dict, Optional, Type, TypeVar
 
 import esper  # type: ignore
 import tabulate
@@ -63,7 +63,7 @@ class WorldExt(esper.World):
         for component in component_instances:
             self.add_component(entity, component)
 
-    def try_component(self, entity: int, component_type: T) -> Optional[T]:
+    def try_component(self, entity: int, component_type: Type[T]) -> Optional[T]:
         """Try to get a single component type for an Entity.
 
         Copy-paste from Esper, except it returns instead of yielding, because
@@ -78,7 +78,7 @@ class WorldExt(esper.World):
 class Processor(esper.Processor):
     world: WorldExt
 
-    def process(self, *args, **kwargs):
+    def process(self, *args, **kwargs) -> None:
         raise NotImplementedError
 
 

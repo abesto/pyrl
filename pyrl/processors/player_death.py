@@ -5,9 +5,8 @@ from pyrl.components import Collider, Energy, Fighter, Player, Visual
 from pyrl.components.action import Action
 from pyrl.components.ai import Ai
 from pyrl.components.visual import RenderOrder
+from pyrl.esper_ext import Processor
 from pyrl.resources import Messages
-
-from ..esper_ext import Processor
 
 
 class PlayerDeathProcessor(Processor):
@@ -19,7 +18,7 @@ class PlayerDeathProcessor(Processor):
             print("player died")
             messages.append("You died!", tcod.red)
             self.world.add_component(
-                ent, Visual("%", tcod.dark_red, RenderOrder.Corpse)
+                ent, Visual("%", tcod.dark_red, RenderOrder.CORPSE)
             )
             for component in (Ai, Fighter, Collider, Action, Energy):
                 try:

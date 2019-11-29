@@ -66,4 +66,5 @@ class DropFromInventory(Action):
 
 ponder = SimpleAction("ponder", 1)
 pickup = SimpleAction("pickup", 1)
+take_stairs = SimpleAction("take_stairs", 1)
 skip_one = Skip(1)

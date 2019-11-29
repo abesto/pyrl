@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+from pyrl.world_helpers import EntityProcessor
+
 from ..components import Player, Position, Velocity
-from ..esper_ext import Processor
 from ..resources import Fov
 
 
-class MovementProcessor(Processor):
-    def process(self, ent: int):
+class MovementProcessor(EntityProcessor):
+    def process_entity(self, ent: int):
         if not self.world.has_component(ent, Velocity):
             return
         position, velocity = [

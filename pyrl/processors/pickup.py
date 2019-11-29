@@ -2,23 +2,16 @@
 import tcod
 
 from pyrl.components import Energy, Inventory, Name, Position
-from pyrl.components.action import Action, pickup
+from pyrl.components.action import Action, SimpleAction, pickup
 from pyrl.components.inventory import InventoryFullException
 from pyrl.components.item import Item
-from pyrl.esper_ext import Processor
 from pyrl.resources import Messages
+from pyrl.world_helpers import ActionProcessor, act
 
 
-class PickupProcessor(Processor):
-    def process(self, actor_ent: int):
-        action = self.world.try_component(actor_ent, Action)
-        if action is not pickup:
-            return
-
-        energy = self.world.component_for_entity(actor_ent, Energy)
-        if not energy.can_act:
-            return
-
+class PickupProcessor(ActionProcessor):
+    @act(pickup)
+    def process_action(self, actor_ent: int, action: SimpleAction, energy: Energy):
         messages = self.world.get_resource(Messages)
         actor_position = self.world.component_for_entity(actor_ent, Position)
         for item_ent, (item_position, _) in self.world.get_components(Position, Item):

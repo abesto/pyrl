@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 
 from tcod.color import Color
 
 
 class RenderOrder(Enum):
-    Corpse = 1
-    Item = 2
-    Actor = 3
+    STAIRS = auto()
+    CORPSE = auto()
+    ITEM = auto()
+    ACTOR = auto()
 
 
 @dataclass(frozen=True)

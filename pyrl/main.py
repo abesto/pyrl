@@ -21,6 +21,7 @@ from pyrl.processors import (
     PonderProcessor,
     RenderProcessor,
     SkipProcessor,
+    StairsProcessor,
     TimeProcessor,
     UseItemProcessor,
 )
@@ -46,6 +47,7 @@ def add_processors(world: WorldExt) -> None:
             PickupProcessor(),
             UseItemProcessor(),
             DropProcessor(),
+            StairsProcessor(),
             # Compute results
             CollisionProcessor(),
             MovementProcessor(),

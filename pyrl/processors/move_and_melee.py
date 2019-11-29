@@ -2,20 +2,13 @@
 
 from pyrl.components import Collider, Energy, Fighter, Name, Player, Position, Velocity
 from pyrl.components.action import Action, MoveOrMelee
-from pyrl.esper_ext import Processor
 from pyrl.resources import Messages
+from pyrl.world_helpers import ActionProcessor, act
 
 
-class MoveAndMeleeProcessor(Processor):
-    def process(self, ent: int):
-        action = self.world.try_component(ent, Action)
-        if not isinstance(action, MoveOrMelee):
-            return
-
-        energy = self.world.component_for_entity(ent, Energy)
-        if not energy.can_act:
-            return
-
+class MoveAndMeleeProcessor(ActionProcessor):
+    @act(MoveOrMelee)
+    def process_action(self, ent: int, action: MoveOrMelee, energy: Energy):
         self.world.add_component(ent, energy.consume(action.energy_cost))
 
         messages = self.world.get_resource(Messages)
