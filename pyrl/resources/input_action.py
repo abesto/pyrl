@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from dataclasses import dataclass
+from enum import Enum, auto
 from typing import ClassVar, Dict, Optional, Type
 
 from ..vector import Vector
@@ -27,6 +28,7 @@ pickup = SimpleInputAction("pickup")
 take_stairs = SimpleInputAction("take_stairs")
 open_inventory = SimpleInputAction("open_inventory")
 open_drop_menu = SimpleInputAction("open_drop_menu")
+open_character_menu = SimpleInputAction("open_character_menu")
 dismiss_menu = SimpleInputAction("close_menu")
 cancel_targeting = SimpleInputAction("cancel_targeting")
 
@@ -60,3 +62,9 @@ class UseFromInventory(InputAction):
 @dataclass(frozen=True)
 class DropFromInventory(InputAction):
     index: int
+
+
+class LevelUpChoice(InputAction, Enum):
+    HP = auto()
+    STR = auto()
+    DEF = auto()

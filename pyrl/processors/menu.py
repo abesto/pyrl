@@ -6,12 +6,14 @@ from pyrl.resources import Menu
 from pyrl.resources.input_action import (
     DropFromInventory,
     InputAction,
+    LevelUpChoice,
     MenuChoice,
     UseFromInventory,
     dismiss_menu,
     load,
     new_game,
     noop,
+    open_character_menu,
     open_drop_menu,
     open_inventory,
     quit,
@@ -55,10 +57,13 @@ class MenuProcessor(Processor):
                 )
             self.world.add_resource(noop)
 
-        elif (
-            input_action is dismiss_menu
-            and self.world.get_resource(Menu).menu_type is not MenuType.MAIN
-        ):
+        elif input_action is open_character_menu:
+            self.world.add_resource(
+                Menu(MenuType.CHARACTER, "Character Information", [], 30)
+            )
+            self.world.add_resource(noop)
+
+        elif input_action is dismiss_menu and self.world.get_resource(Menu).can_dismiss:
             self.world.remove_resource(Menu)
             self.world.add_resource(noop)
 
@@ -80,6 +85,16 @@ class MenuProcessor(Processor):
                 new_action = {0: new_game, 1: load, 2: quit}.get(
                     input_action.choice, noop
                 )
+                self.world.add_resource(new_action)
+                if new_action is not noop:
+                    self.world.remove_resource(Menu)
+
+            elif menu.menu_type is MenuType.LEVEL_UP:
+                new_action = {
+                    0: LevelUpChoice.HP,
+                    1: LevelUpChoice.STR,
+                    2: LevelUpChoice.DEF,
+                }.get(input_action.choice, noop)
                 self.world.add_resource(new_action)
                 if new_action is not noop:
                     self.world.remove_resource(Menu)

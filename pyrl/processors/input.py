@@ -16,6 +16,7 @@ from ..resources.input_action import (
     cancel_targeting,
     dismiss_menu,
     noop,
+    open_character_menu,
     open_drop_menu,
     open_inventory,
     pickup,
@@ -51,6 +52,8 @@ normal_keymap: Keymap = {
     tcod.event.K_g: pickup,
     tcod.event.K_i: open_inventory,
     tcod.event.K_d: open_drop_menu,
+    # Character screen!
+    tcod.event.K_c: open_character_menu,
 }
 
 

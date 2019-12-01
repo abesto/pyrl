@@ -69,6 +69,8 @@ def save(world: WorldExt) -> None:
 
 
 def load(world: WorldExt) -> bool:
+    # In extreme cases we might run into issues where entity IDs become extremely huge.
+    # Might be good to compact entity IDs from time to time or whatever ;)
     try:
         with gzip.open(config.SAVEFILE, "r") as f:
             data = pickle.load(f)

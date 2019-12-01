@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import functools
 import inspect
+from abc import ABC
 from typing import Generic, Iterable, Optional, Tuple, Type, TypeVar
 
 from pyrl.components import Energy, Fighter, Player
@@ -119,7 +120,20 @@ def act(accept_action):
     return guard(has_action(accept_action), can_act)
 
 
-class EntityProcessor(Processor):
+class ProcessorExt(Processor, ABC):
+    @property
+    def player(self) -> Optional[int]:
+        matches = self.world.get_component(Player)
+        if not matches:
+            return None
+        if len(matches) > 1:
+            raise Exception(
+                "More than 1 entity found with Player flag component, what gives?"
+            )
+        return matches[0][0]
+
+
+class EntityProcessor(ProcessorExt):
     def process(self, *args, **kwargs) -> None:
         return self.process_entity(int(args[0]))
 

@@ -9,6 +9,8 @@ class MenuType(Enum):
     INVENTORY = auto()
     DROP = auto()
     MAIN = auto()
+    LEVEL_UP = auto()
+    CHARACTER = auto()
 
 
 @dataclass(frozen=True)
@@ -17,6 +19,10 @@ class Menu:
     header: str
     options: List[str]
     width: int
+
+    @property
+    def can_dismiss(self) -> bool:
+        return self.menu_type not in (MenuType.MAIN, MenuType.LEVEL_UP)
 
 
 main_menu = Menu(

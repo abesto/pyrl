@@ -3,9 +3,10 @@ from random import randint
 
 import tcod.color
 
-from pyrl.components import Inventory, Player, Stairs
+from pyrl.components import Inventory, Level, Player, Stairs
 from pyrl.components.item import Item
 from pyrl.components.visual import RenderOrder
+from pyrl.components.xp_reward import XpReward
 from pyrl.resources import Fov
 
 from . import config
@@ -107,24 +108,26 @@ def generate_monsters(world: WorldExt) -> None:
                 if randint(0, 100) < 80:
                     world.add_components(
                         monster,
+                        Name("Orc"),
                         Visual(
                             char="o",
                             color=tcod.desaturated_green,
                             render_order=RenderOrder.ACTOR,
                         ),
-                        Name("Orc"),
                         Fighter.new(hp=10, defense=0, power=3),
+                        XpReward(35),
                     )
                 else:
                     world.add_components(
                         monster,
+                        Name("Troll"),
                         Visual(
                             char="T",
                             color=tcod.darker_green,
                             render_order=RenderOrder.ACTOR,
                         ),
-                        Name("Troll"),
                         Fighter.new(hp=16, defense=1, power=4),
+                        XpReward(100),
                     )
 
 
@@ -196,8 +199,9 @@ def add_player(world) -> None:
         Name("Player"),
         Collider(),
         Energy(1),
-        Fighter.new(hp=30, defense=2, power=5,),
+        Fighter.new(hp=30, defense=2, power=5),
         Inventory(26),
+        Level(level_up_base=200, level_up_factor=150),
     )
 
 

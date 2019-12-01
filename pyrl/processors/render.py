@@ -6,18 +6,19 @@ import tcod.color
 import tcod.console
 import tcod.image
 
-from pyrl.components import Fighter, Player
+from pyrl.components import Fighter, Level, Player
 from pyrl.resources import Menu, Messages, Targeting
+from pyrl.resources.menu import MenuType
 from pyrl.vector import Vector
+from pyrl.world_helpers import ProcessorExt
 
 from .. import config
 from ..components import Position, Visual
-from ..esper_ext import Processor
 from ..resources import Fov
 from ..resources.map import Map
 
 
-class RenderProcessor(Processor):
+class RenderProcessor(ProcessorExt):
     @staticmethod
     @lru_cache()
     def _load_image(path: Path) -> tcod.image.Image:
@@ -178,23 +179,23 @@ class RenderProcessor(Processor):
             alignment=tcod.CENTER,
         )
 
-    def _process_menu(self, console: tcod.console.Console):
+    def _process_menu(self, console: tcod.console.Console) -> None:
         menu = self.world.try_resource(Menu)
         if not menu:
             return
 
-        if len(menu.options) > 26:
-            raise ValueError("Cannot have a menu with more than 26 options.")
-
-        # render background if we're on the main menu
-        image = self._load_image(config.MAIN_MENU_BACKGROUND_PATH)
-        image.blit_2x(console, dest_x=0, dest_y=0)
-
-        # calculate total height for the header (after auto-wrap) and one line per option
         header_height = console.get_height_rect(
             0, 0, menu.width, config.SCREEN_HEIGHT, menu.header
         )
-        height = len(menu.options) + header_height
+
+        # This would ideally be refactored into Menu containing a list of non-choice lines
+        # or maybe a dedicated InformationMenu component, or maybe a flag on Menu switching
+        # between an information-only and a choice menu
+        if menu.menu_type is MenuType.CHARACTER:
+            height = 6 + header_height
+        else:
+            # calculate total height for the header (after auto-wrap) and one line per option
+            height = len(menu.options) + header_height
 
         # create an off-screen console that represents the menu's window
         window = tcod.console_new(menu.width, height)
@@ -210,18 +211,59 @@ class RenderProcessor(Processor):
             alignment=tcod.LEFT,
         )
 
-        # print all the options
-        y = header_height
-        letter_index = ord("a")
-        for option_text in menu.options:
-            text = "(" + chr(letter_index) + ") " + option_text
-            window.print(0, y, text, bg_blend=tcod.BKGND_NONE)
-            y += 1
-            letter_index += 1
+        # render background if we're on the main menu
+        if menu.menu_type is MenuType.MAIN:
+            image = self._load_image(config.MAIN_MENU_BACKGROUND_PATH)
+            image.blit_2x(console, dest_x=0, dest_y=0)
 
-        # blit the contents of "window" to the root console
+        # render menu contents
+        contents = tcod.console_new(menu.width, height - header_height)
+        if menu.menu_type is MenuType.CHARACTER:
+            self._process_character_menu(contents)
+        else:
+            self._process_choice_menu(contents, menu)
+        contents.blit(
+            window, dest_x=0, dest_y=header_height, height=height - header_height
+        )
+
+        # blit onto the main console
         x = int(config.SCREEN_WIDTH / 2 - menu.width / 2)
         y = int(config.SCREEN_HEIGHT / 2 - height / 2)
         window.blit(
             console, dest_x=x, dest_y=y, width=menu.width, height=height, bg_alpha=0.7
         )
+
+    def _process_choice_menu(self, console: tcod.console.Console, menu: Menu) -> None:
+        if len(menu.options) > 26:
+            raise ValueError("Cannot have a menu with more than 26 options.")
+
+        # print all the options
+        y = 0
+        letter_index = ord("a")
+        for option_text in menu.options:
+            text = "(" + chr(letter_index) + ") " + option_text
+            console.print(0, y, text, bg_blend=tcod.BKGND_NONE)
+            y += 1
+            letter_index += 1
+
+    def _process_character_menu(self, console: tcod.console.Console) -> None:
+        # This would ideally be refactored into Menu containing a list of non-choice lines
+        # or maybe a dedicated InformationMenu component, or maybe a flag on Menu switching
+        # between an information-only and a choice menu
+        player = self.player
+        if not player:
+            return
+
+        level = self.world.component_for_entity(player, Level)
+        fighter = self.world.component_for_entity(player, Fighter)
+        lines = [
+            f"Level: {level.current_level}",
+            f"Experience: {level.current_xp}",
+            f"Experience to Level: {level.experience_to_next_level}",
+            f"Maximum HP: {fighter.max_hp}",
+            f"Attack: {fighter.power}",
+            f"Defense: {fighter.defense}",
+        ]
+
+        for y, line in enumerate(lines):
+            console.print(0, y, line, bg_blend=tcod.BKGND_NONE)
