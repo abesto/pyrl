@@ -7,6 +7,7 @@ from pyrl.components import Inventory, Level, Player, Stairs
 from pyrl.components.item import Item
 from pyrl.components.visual import RenderOrder
 from pyrl.components.xp_reward import XpReward
+from pyrl.random_utils import SpawnRow, SpawnTable
 from pyrl.resources import Fov
 
 from . import config
@@ -88,11 +89,18 @@ def connect_room(map: Map, new_center: Vector) -> None:
         create_h_tunnel(map, prev_center.x, new_center.x, new_center.y)
 
 
+max_monsters_per_room = SpawnRow(2, 1)(3, 4)(5, 6)
+monster_spawn_table: SpawnTable[str] = SpawnTable()
+monster_spawn_table.add("orc")(80)
+monster_spawn_table.add("troll")(15, 3)(30, 5)(60, 7)
+
+
 def generate_monsters(world: WorldExt) -> None:
     map = world.get_resource(Map)
+    our_max_monsters_per_room = max_items_per_room.weight(map.dungeon_level)
 
     for room in map.rooms:
-        number_of_monsters = randint(0, config.MAX_MONSTERS_PER_ROOM)
+        number_of_monsters = randint(0, our_max_monsters_per_room)
 
         for i in range(number_of_monsters):
             # Choose a random location in the room
@@ -105,7 +113,9 @@ def generate_monsters(world: WorldExt) -> None:
 
             if not any(match[1] == position for match in world.get_component(Position)):
                 monster = world.create_entity(position, Collider(), Energy(1), basic_ai)
-                if randint(0, 100) < 80:
+                monster_choice = monster_spawn_table.spawn(map.dungeon_level)
+
+                if monster_choice == "orc":
                     world.add_components(
                         monster,
                         Name("Orc"),
@@ -114,7 +124,7 @@ def generate_monsters(world: WorldExt) -> None:
                             color=tcod.desaturated_green,
                             render_order=RenderOrder.ACTOR,
                         ),
-                        Fighter.new(hp=10, defense=0, power=3),
+                        Fighter.new(hp=20, defense=0, power=4),
                         XpReward(35),
                     )
                 else:
@@ -126,16 +136,25 @@ def generate_monsters(world: WorldExt) -> None:
                             color=tcod.darker_green,
                             render_order=RenderOrder.ACTOR,
                         ),
-                        Fighter.new(hp=16, defense=1, power=4),
+                        Fighter.new(hp=30, defense=2, power=8),
                         XpReward(100),
                     )
 
 
+max_items_per_room = SpawnRow(1, 1)(2, 4)
+item_spawn_table: SpawnTable[Item] = SpawnTable()
+item_spawn_table.add(Item.HEALING_POTION)(35)
+item_spawn_table.add(Item.LIGHTNING_SCROLL)(25, 4)
+item_spawn_table.add(Item.LIGHTNING_SCROLL)(25, 6)
+item_spawn_table.add(Item.CONFUSION_SCROLL)(10, 2)
+
+
 def generate_items(world: WorldExt) -> None:
     map = world.get_resource(Map)
+    our_max_items_per_room = max_items_per_room.weight(map.dungeon_level)
 
     for room in map.rooms:
-        number_of_items = randint(0, config.MAX_ITEMS_PER_ROOM)
+        number_of_items = randint(0, our_max_items_per_room)
 
         for i in range(number_of_items):
             position = Position(
@@ -146,23 +165,23 @@ def generate_items(world: WorldExt) -> None:
             )
 
             if not any(match[1] == position for match in world.get_component(Position)):
-                item_chance = randint(0, 100)
+                item_choice = item_spawn_table.spawn(map.dungeon_level)
 
-                if item_chance < 70:
+                if item_choice is Item.HEALING_POTION:
                     world.create_entity(
                         position,
                         Visual("!", tcod.violet, RenderOrder.ITEM),
                         Name("Healing Potion"),
                         Item.HEALING_POTION,
                     )
-                elif item_chance < 80:
+                elif item_choice is Item.FIREBALL_SCROLL:
                     world.create_entity(
                         position,
                         Visual("#", tcod.red, RenderOrder.ITEM),
                         Name("Fireball Scroll"),
                         Item.FIREBALL_SCROLL,
                     )
-                elif item_chance < 90:
+                elif item_choice is Item.LIGHTNING_SCROLL:
                     world.create_entity(
                         position,
                         Visual("#", tcod.yellow, RenderOrder.ITEM),
@@ -199,7 +218,7 @@ def add_player(world) -> None:
         Name("Player"),
         Collider(),
         Energy(1),
-        Fighter.new(hp=30, defense=2, power=5),
+        Fighter.new(hp=100, defense=1, power=4),
         Inventory(26),
         Level(level_up_base=200, level_up_factor=150),
     )

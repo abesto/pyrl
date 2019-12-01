@@ -26,13 +26,13 @@ class UseItemProcessor(ActionProcessor):
                 messages.append("You are already at full health", tcod.yellow)
             else:
                 messages.append("Your wounds start to feel better!", tcod.green)
-                self.world.add_component(actor, fighter.heal(4))
+                self.world.add_component(actor, fighter.heal(40))
                 self.world.add_component(actor, energy.consume(action.energy_cost))
                 self.world.add_component(actor, inventory.remove_item_at(action.index))
                 self.world.delete_entity(item_ent)
 
         elif item is Item.LIGHTNING_SCROLL:
-            damage = 20
+            damage = 40
             maximum_range = 5
             fov_map = self.world.get_resource(Fov).fov_map
             actor_position = self.world.component_for_entity(actor, Position)
@@ -67,7 +67,7 @@ class UseItemProcessor(ActionProcessor):
 
         elif item is Item.FIREBALL_SCROLL:
             fov_map = self.world.get_resource(Fov).fov_map
-            damage = 12
+            damage = 25
             radius = 3
             target = action.target
 
