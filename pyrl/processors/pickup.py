@@ -14,7 +14,7 @@ class PickupProcessor(ActionProcessor):
     def process_action(self, actor_ent: int, action: SimpleAction, energy: Energy):
         messages = self.world.get_resource(Messages)
         actor_position = self.world.component_for_entity(actor_ent, Position)
-        for item_ent, (item_position, _) in self.world.get_components(Position, Item):
+        for item_ent, item_position in self.world.get_component(Position):
             if actor_position != item_position:
                 continue
 

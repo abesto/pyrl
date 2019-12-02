@@ -3,7 +3,7 @@
 from pyrl.components import Collider, Energy, Fighter, Name, Player, Position, Velocity
 from pyrl.components.action import Action, MoveOrMelee
 from pyrl.resources import Messages
-from pyrl.world_helpers import ActionProcessor, act
+from pyrl.world_helpers import ActionProcessor, act, defense, power
 
 
 class MoveAndMeleeProcessor(ActionProcessor):
@@ -14,7 +14,6 @@ class MoveAndMeleeProcessor(ActionProcessor):
         messages = self.world.get_resource(Messages)
 
         position = self.world.component_for_entity(ent, Position)
-        fighter = self.world.component_for_entity(ent, Fighter)
         target_vector = position.vector + action.vector
         for (
             target_entity,
@@ -35,7 +34,7 @@ class MoveAndMeleeProcessor(ActionProcessor):
                 )
                 break
 
-            damage = fighter.power - target_fighter.defense
+            damage = power(self.world, ent) - defense(self.world, target_entity)
 
             if damage > 0:
                 self.world.add_component(
@@ -51,6 +50,6 @@ class MoveAndMeleeProcessor(ActionProcessor):
             break
         else:
             self.world.add_component(ent, Velocity(action.vector))
-            print(f"{self.world.component_for_entity(ent, Name)} {ent} moves")
+            # print(f"{self.world.component_for_entity(ent, Name)} {ent} moves")
 
         self.world.remove_component(ent, Action)

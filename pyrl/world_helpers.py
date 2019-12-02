@@ -4,7 +4,7 @@ import inspect
 from abc import ABC
 from typing import Generic, Iterable, Optional, Tuple, Type, TypeVar
 
-from pyrl.components import Energy, Fighter, Player
+from pyrl.components import Energy, Equipment, Fighter, Player
 from pyrl.components.action import Action
 from pyrl.esper_ext import Processor, WorldExt
 from pyrl.resources.input_action import InputAction, noop, quit
@@ -99,6 +99,24 @@ def is_player(world: WorldExt, ent: int) -> bool:
     except KeyError:
         return False
     return True
+
+
+def power(world: WorldExt, ent: int) -> int:
+    fighter = world.component_for_entity(ent, Fighter)
+    value = fighter.power
+    equipment = world.try_component(ent, Equipment)
+    if equipment:
+        value += equipment.power_bonus(world)
+    return value
+
+
+def defense(world: WorldExt, ent: int) -> int:
+    fighter = world.component_for_entity(ent, Fighter)
+    value = fighter.defense
+    equipment = world.try_component(ent, Equipment)
+    if equipment:
+        value += equipment.defense_bonus(world)
+    return value
 
 
 def guard(*conditions):

@@ -1,7 +1,16 @@
 #!/usr/bin/env python
 import tcod
 
-from pyrl.components import Energy, Fighter, Inventory, Name, Player, Position
+from pyrl.components import (
+    Energy,
+    Equipment,
+    Equippable,
+    Fighter,
+    Inventory,
+    Name,
+    Player,
+    Position,
+)
 from pyrl.components.action import Action, UseFromInventory
 from pyrl.components.ai import Ai, ConfusedAi
 from pyrl.components.item import Item
@@ -16,11 +25,24 @@ class UseItemProcessor(ActionProcessor):
     ) -> None:
         inventory = self.world.component_for_entity(actor, Inventory)
         item_ent = inventory.items[action.index]
-        item = self.world.component_for_entity(item_ent, Item)
+        item = self.world.try_component(item_ent, Item)
+        messages = self.world.get_resource(Messages)
+
+        if self.world.try_component(item_ent, Equippable):
+            equipment = self.world.component_for_entity(actor, Equipment).toggle_equip(
+                self.world, item_ent
+            )
+            self.world.add_component(actor, equipment)
+            name = self.world.component_for_entity(item_ent, Name)
+            if equipment.is_equipped(item_ent):
+                messages.append(f"You equipped the {name}")
+            else:
+                messages.append(f"You unequipped the {name}")
+            self.world.add_component(actor, energy.consume(action.energy_cost))
 
         # This could be refactored into "effects" (+ "perception") systems
-        messages = self.world.get_resource(Messages)
-        if item is Item.HEALING_POTION:
+
+        elif item is Item.HEALING_POTION:
             fighter = self.world.component_for_entity(actor, Fighter)
             if fighter.hp >= fighter.max_hp:
                 messages.append("You are already at full health", tcod.yellow)
@@ -63,6 +85,7 @@ class UseItemProcessor(ActionProcessor):
                 )
                 self.world.add_component(target, fighter.take_damage(damage))
                 self.world.add_component(actor, inventory.remove_item_at(action.index))
+                self.world.add_component(actor, energy.consume(action.energy_cost))
                 self.world.delete_entity(item_ent)
 
         elif item is Item.FIREBALL_SCROLL:
@@ -95,6 +118,7 @@ class UseItemProcessor(ActionProcessor):
                         )
                         self.world.add_component(candidate, fighter.take_damage(damage))
                 self.world.add_component(actor, inventory.remove_item_at(action.index))
+                self.world.add_component(actor, energy.consume(action.energy_cost))
                 self.world.delete_entity(item_ent)
 
         elif item is Item.CONFUSION_SCROLL:
@@ -122,6 +146,9 @@ class UseItemProcessor(ActionProcessor):
                         )
                         self.world.add_component(
                             actor, inventory.remove_item_at(action.index)
+                        )
+                        self.world.add_component(
+                            actor, energy.consume(action.energy_cost)
                         )
                         self.world.delete_entity(item_ent)
                         break

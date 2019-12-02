@@ -10,7 +10,7 @@ from pyrl.components import Fighter, Level, Player
 from pyrl.resources import Menu, Messages, Targeting
 from pyrl.resources.menu import MenuType
 from pyrl.vector import Vector
-from pyrl.world_helpers import ProcessorExt
+from pyrl.world_helpers import ProcessorExt, defense, power
 
 from .. import config
 from ..components import Position, Visual
@@ -261,8 +261,8 @@ class RenderProcessor(ProcessorExt):
             f"Experience: {level.current_xp}",
             f"Experience to Level: {level.experience_to_next_level}",
             f"Maximum HP: {fighter.max_hp}",
-            f"Attack: {fighter.power}",
-            f"Defense: {fighter.defense}",
+            f"Attack: {power(self.world, player)}",
+            f"Defense: {defense(self.world, player)}",
         ]
 
         for y, line in enumerate(lines):

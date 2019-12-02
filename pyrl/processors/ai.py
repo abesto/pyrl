@@ -52,8 +52,8 @@ class AiProcessor(EntityProcessor):
             item_ent = self.world.component_for_entity(ent, Inventory).items[
                 action.index
             ]
-            item = self.world.component_for_entity(item_ent, Item)
-            if item.needs_targeting:
+            item = self.world.try_component(item_ent, Item)
+            if item is not None and item.needs_targeting:
                 target = action.target
                 if target is None:
                     self.world.add_resource(

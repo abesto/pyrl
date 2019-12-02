@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 from random import randint
+from typing import Union
 
 import tcod.color
 
-from pyrl.components import Inventory, Level, Player, Stairs
+from pyrl.components import Equipment, Inventory, Level, Player, Stairs
+from pyrl.components.equippable import Equippable, Slot
 from pyrl.components.item import Item
 from pyrl.components.visual import RenderOrder
 from pyrl.components.xp_reward import XpReward
@@ -142,11 +144,13 @@ def generate_monsters(world: WorldExt) -> None:
 
 
 max_items_per_room = SpawnRow(1, 1)(2, 4)
-item_spawn_table: SpawnTable[Item] = SpawnTable()
+item_spawn_table: SpawnTable[Union[Item, Slot]] = SpawnTable()
 item_spawn_table.add(Item.HEALING_POTION)(35)
 item_spawn_table.add(Item.LIGHTNING_SCROLL)(25, 4)
 item_spawn_table.add(Item.LIGHTNING_SCROLL)(25, 6)
 item_spawn_table.add(Item.CONFUSION_SCROLL)(10, 2)
+item_spawn_table.add(Slot.MAIN_HAND)(5, 4)
+item_spawn_table.add(Slot.OFF_HAND)(15, 8)
 
 
 def generate_items(world: WorldExt) -> None:
@@ -188,12 +192,26 @@ def generate_items(world: WorldExt) -> None:
                         Name("Lightning Scroll"),
                         Item.LIGHTNING_SCROLL,
                     )
-                else:
+                elif item_choice is Item.CONFUSION_SCROLL:
                     world.create_entity(
                         position,
                         Visual("#", tcod.purple, RenderOrder.ITEM),
                         Name("Confusion Scroll"),
                         Item.CONFUSION_SCROLL,
+                    )
+                elif item_choice is Slot.MAIN_HAND:
+                    world.create_entity(
+                        position,
+                        Visual("/", tcod.sky, RenderOrder.ITEM),
+                        Name("Sword"),
+                        Equippable(slot=Slot.MAIN_HAND, power_bonus=3,),
+                    )
+                elif item_choice is Slot.OFF_HAND:
+                    world.create_entity(
+                        position,
+                        Visual("[", tcod.darker_orange, RenderOrder.ITEM),
+                        Name("Shield"),
+                        Equippable(slot=Slot.OFF_HAND, defense_bonus=1,),
                     )
 
 
@@ -210,6 +228,13 @@ def generate_stairs(world: WorldExt) -> None:
 
 def add_player(world) -> None:
     map = world.get_resource(Map)
+
+    dagger = world.create_entity(
+        Visual("-", tcod.sky, RenderOrder.ITEM),
+        Name("Dagger"),
+        Equippable(slot=Slot.MAIN_HAND, power_bonus=2,),
+    )
+
     world.create_entity(
         map.spawn_position,
         Visual("@", tcod.white, RenderOrder.ACTOR),
@@ -218,9 +243,10 @@ def add_player(world) -> None:
         Name("Player"),
         Collider(),
         Energy(1),
-        Fighter.new(hp=100, defense=1, power=4),
-        Inventory(26),
+        Fighter.new(hp=100, defense=1, power=2),
+        Inventory(26).add(dagger),
         Level(level_up_base=200, level_up_factor=150),
+        Equipment({}).toggle_equip(world, dagger),
     )
 
 

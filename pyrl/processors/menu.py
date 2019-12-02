@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from pyrl import config
-from pyrl.components import Inventory, Name, Player
+from pyrl.components import Equipment, Inventory, Name, Player
 from pyrl.esper_ext import Processor
 from pyrl.resources import Menu
 from pyrl.resources.input_action import (
@@ -19,18 +19,35 @@ from pyrl.resources.input_action import (
     quit,
 )
 from pyrl.resources.menu import MenuType
+from pyrl.world_helpers import ProcessorExt
 
 
-class MenuProcessor(Processor):
+class MenuProcessor(ProcessorExt):
+    def _calculate_display_name(self, ent: int) -> str:
+        # This is pretty clumsy, great use-case for a better interface to traverse optional components
+        player = self.player
+        if player:
+            equipment = self.world.try_component(player, Equipment)
+        else:
+            equipment = None
+
+        name = str(self.world.component_for_entity(ent, Name))
+        if equipment is None:
+            slot = None
+        else:
+            slot = equipment.equipped_to(ent)
+
+        if slot is None:
+            return name
+        else:
+            return f"{name} (in {slot.name})"
+
     def process(self):
         input_action = self.world.get_resource(InputAction)
 
         if input_action is open_inventory:
             for _, (_, inventory) in self.world.get_components(Player, Inventory):
-                names = [
-                    self.world.component_for_entity(item, Name).name
-                    for item in inventory.items
-                ]
+                names = [self._calculate_display_name(item) for item in inventory.items]
                 self.world.add_resource(
                     Menu(
                         MenuType.INVENTORY,

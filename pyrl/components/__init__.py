@@ -2,6 +2,8 @@
 
 from .collider import Collider  # NOQA
 from .energy import Energy  # NOQA
+from .equipment import Equipment  # NOQA
+from .equippable import Equippable  # NOQA
 from .fighter import Fighter  # NOQA
 from .inventory import Inventory  # NOQA
 from .level import Level  # NOQA
